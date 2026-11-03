@@ -212,7 +212,7 @@ export function GuiaPage() {
       </div>
 
       {/* Guias em sanfona */}
-      <div className="space-y-3">
+      <div key={`${publico}-${categoria}`} className="entra-escalonado space-y-3">
         {visiveis.length === 0 && duvidasVisiveis.length === 0 && (
           <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
             Nada encontrado para "{busca}". Tente outra palavra ou pergunte ao responsável pela padaria.

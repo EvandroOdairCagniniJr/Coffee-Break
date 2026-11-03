@@ -34,7 +34,7 @@ export function LayoutAdministracao() {
         end={item.end}
         className={({ isActive }) =>
           cn(
-            'group relative flex items-center gap-2.5 rounded-xl text-sm font-medium transition-all duration-300',
+            'group relative flex items-center gap-2.5 rounded-xl text-sm font-medium transition-[background-color,color,box-shadow,scale] duration-200 ease-(--ease-out)',
             compacta ? 'shrink-0 px-3 py-2' : 'px-3 py-2.5',
             isActive
               ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-[#2a170c] shadow-[0_8px_24px_-8px_rgba(251,191,36,.6)]'

@@ -456,7 +456,7 @@ export function PdvPage() {
                     type="button"
                     onClick={() => setGrupoAberto(item.grupo)}
                     className={cn(
-                      'relative flex flex-col items-start gap-2 rounded-xl border bg-card p-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md active:translate-y-0',
+                      'relative flex flex-col items-start gap-2 rounded-xl border bg-card p-3 text-left transition-[translate,scale,border-color,box-shadow] duration-200 ease-(--ease-out) hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md active:translate-y-0 active:scale-[0.97]',
                       item.noCarrinho > 0 && 'border-primary ring-1 ring-primary/30',
                     )}
                   >
@@ -856,7 +856,7 @@ function LinhaPedido({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 p-2">
+    <div className="linha-entra flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 p-2">
       <IconeProduto produto={produto} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{produto.nome}</p>
@@ -944,7 +944,7 @@ function CartaoProduto({
       type="button"
       onClick={onClick}
       className={cn(
-        'relative flex h-full w-full flex-col items-start gap-2 rounded-xl border bg-card p-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md active:translate-y-0',
+        'relative flex h-full w-full flex-col items-start gap-2 rounded-xl border bg-card p-3 text-left transition-[translate,scale,border-color,box-shadow] duration-200 ease-(--ease-out) hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md active:translate-y-0 active:scale-[0.97]',
         noCarrinho && 'border-primary ring-1 ring-primary/30',
       )}
     >

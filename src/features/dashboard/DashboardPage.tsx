@@ -155,7 +155,7 @@ export function DashboardPage() {
         <Recomendacoes />
       </section>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="entra-escalonado grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -180,7 +180,7 @@ export function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="entra-escalonado grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Painel titulo="Estoque baixo" link="/estoque" vazio="Nenhum produto abaixo do mínimo">
           {estoqueBaixo.slice(0, 8).map((p) => (
             <li key={p.id} className="flex items-center justify-between">

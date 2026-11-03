@@ -116,7 +116,7 @@ export function SaberPage() {
           </div>
 
           {secao && (
-            <div className="space-y-3">
+            <div key={aba} className="entra-escalonado space-y-3">
               <p className="text-sm text-muted-foreground">{secao.resumo}</p>
               {secao.topicos.map((t, i) => (
                 <TopicoCard key={t.id} topico={t} aberto={i === 0} />
