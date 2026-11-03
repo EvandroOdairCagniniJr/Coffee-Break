@@ -345,6 +345,14 @@ const aceitesFunc = (await db.query(`select origem, ip from padaria.aceites_term
 confere('novo aceite do funcionário fica no histórico, com IP', aceitesFunc.some((a) => a.origem === 'novo-aceite' && a.ip), JSON.stringify(aceitesFunc))
 const assinaturaBanco = (await db.query(`select email_conta, padaria_nome from padaria.assinaturas_contrato where email_conta like 'rosa.%'`)).rows[0]
 confere('a assinatura guarda o e-mail e o nome da padaria da época', assinaturaBanco?.email_conta && assinaturaBanco?.padaria_nome, JSON.stringify(assinaturaBanco))
+// Abuso: repetir o aceite ou a assinatura não pode encher o banco (as linhas não se apagam).
+const contar = async (tabela) => (await db.query(`select count(*)::int as n from padaria.${tabela}`)).rows[0].n
+const aceitesAntes = await contar('aceites_termos')
+for (let i = 0; i < 5; i++) await api(func, 'POST', '/legal/termos', { aceite: true })
+confere('repetir o aceite não grava linhas novas', (await contar('aceites_termos')) === aceitesAntes)
+const assinaturasAntes = await contar('assinaturas_contrato')
+r = await api(dono, 'POST', '/legal/contrato', { nome: 'Dona Rosa', aceite: true })
+confere('assinar de novo o mesmo texto devolve a assinatura existente', r.status === 200 && r.json?.hash_contrato === hashEsperado && (await contar('assinaturas_contrato')) === assinaturasAntes, `status ${r.status}`)
 const recusa = async (sql) => db.query(sql).then(() => false, (e) => /Registro legal/.test(e.message))
 confere('o banco recusa alterar uma assinatura', await recusa(`update padaria.assinaturas_contrato set nome_assinado = 'Outro'`))
 confere('o banco recusa apagar uma assinatura', await recusa('delete from padaria.assinaturas_contrato'))

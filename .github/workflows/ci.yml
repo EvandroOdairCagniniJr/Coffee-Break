@@ -1,5 +1,5 @@
 # Checagem automática a cada envio para a main e a cada pull request: tipos, lint, build e os
-# 142 testes (funcional + segurança). Os testes usam banco temporário em memória: não tocam no
+# 144 testes (funcional + segurança). Os testes usam banco temporário em memória: não tocam no
 # Supabase e não precisam de senha nenhuma. Grátis em repositório público.
 name: Checagem
 

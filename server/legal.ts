@@ -67,7 +67,9 @@ export async function registrarDocumentosLegais() {
   }
 }
 
-// Cada aceite vira uma linha nova no histórico (nunca sobrescreve o anterior).
+// Cada aceite vira uma linha nova no histórico (nunca sobrescreve o anterior). Repetir o mesmo
+// aceite (mesma pessoa, mesmos textos, mesma origem) não grava de novo: como o histórico não pode
+// ser apagado, chamadas repetidas encheriam o banco para sempre.
 export async function registrarAceite(
   pessoa: { id: string; padaria_id: string; nome: string; email: string },
   origem: 'cadastro' | 'primeiro-acesso' | 'novo-aceite' | 'contrato',
@@ -75,7 +77,12 @@ export async function registrarAceite(
 ) {
   await pool.query(
     `insert into aceites_termos (id, padaria_id, usuario_id, nome, email, versao, hash_termos, hash_privacidade,
-       origem, ip, navegador) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       origem, ip, navegador)
+     select ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+     where not exists (
+       select 1 from aceites_termos
+       where usuario_id = ? and hash_termos = ? and hash_privacidade = ? and origem = ?
+     )`,
     [
       randomUUID(),
       pessoa.padaria_id,
@@ -88,6 +95,10 @@ export async function registrarAceite(
       origem,
       req.ip?.slice(0, 64) ?? null,
       String(req.headers['user-agent'] ?? '').slice(0, 255),
+      pessoa.id,
+      HASH_TERMOS,
+      HASH_PRIVACIDADE,
+      origem,
     ],
   )
 }
@@ -161,6 +172,16 @@ legalRouter.post('/contrato', async (req, res) => {
   )
   if (normalizarNome(nome) !== normalizarNome(u.nome)) {
     throw new HttpError(400, `Para assinar, digite o seu nome completo exatamente como está na conta: ${u.nome}`)
+  }
+  // Já assinou este mesmo texto? Devolve a assinatura existente, sem gravar outra linha.
+  const [jaAssinou] = await pool.query<RowDataPacket[]>(
+    `select nome_assinado, versao, hash_contrato, assinado_em from assinaturas_contrato
+     where padaria_id = ? and hash_contrato = ? order by assinado_em limit 1`,
+    [u.padaria_id, HASH_CONTRATO],
+  )
+  if (jaAssinou[0]) {
+    res.json(jaAssinou[0])
+    return
   }
   const id = randomUUID()
   await pool.query(
