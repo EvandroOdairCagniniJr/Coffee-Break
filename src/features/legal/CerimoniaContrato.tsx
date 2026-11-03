@@ -167,4 +167,3 @@ export function CerimoniaContrato({ onConcluir }: { onConcluir: () => void }) {
   )
 }
 
-// A cerimônia: papel, caneta dourada flutuando e escrevendo o nome, carimbo e boas-vindas.

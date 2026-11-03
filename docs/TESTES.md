@@ -4,9 +4,9 @@ Dois testes automáticos, que rodam isolados: banco temporário em memória, ser
 
 | Comando | O que testa | Verificações |
 |---|---|---|
-| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 106 |
+| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 107 |
 | `npm run teste:seguranca` | Ataques: login forjado, isolamento entre padarias, papéis, SQL injection, CSRF, vazamentos e força bruta | 45 |
-| `npm run teste` | Os dois, em sequência | 151 |
+| `npm run teste` | Os dois, em sequência | 152 |
 
 Rode `npm run teste` antes de todo push (veja [DEPLOY.md](DEPLOY.md)).
 

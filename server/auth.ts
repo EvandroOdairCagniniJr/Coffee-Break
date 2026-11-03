@@ -10,7 +10,7 @@ import {
 import jwt from 'jsonwebtoken'
 import type { RowDataPacket } from './db.ts'
 import { z } from 'zod'
-import { novoCodigoConvite, pool } from './db.ts'
+import { novoCodigoConvite, pool, transaction } from './db.ts'
 import { HttpError, limitarTentativas, validar } from './http.ts'
 import { registrarAcesso } from './seguranca.ts'
 import { esquecerUsuario, guardarNoCache, lerDoCache } from './cacheUsuarios.ts'
@@ -243,13 +243,17 @@ authRouter.post('/cadastro', async (req, res) => {
   const email = dados.email.trim().toLowerCase()
   if (await emailEmUso(email)) throw emailUsado
   const novo = { id: randomUUID(), padaria_id: padarias[0].id as string, nome: dados.nome, email }
-  await pool.query(
-    `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, ativo,
-       termos_versao, termos_aceitos_em)
-     values (?, ?, ?, ?, ?, 'funcionario', '', false, ?, now())`,
-    [novo.id, novo.padaria_id, novo.nome, email, await hashSenha(dados.senha), VERSAO_TERMOS],
-  )
-  await registrarAceite(novo, 'cadastro', req)
+  const senhaHash = await hashSenha(dados.senha)
+  // A conta e o aceite dos termos entram juntos: nunca fica conta sem a prova do aceite.
+  await transaction(async (conn) => {
+    await conn.query(
+      `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, ativo,
+         termos_versao, termos_aceitos_em)
+       values (?, ?, ?, ?, ?, 'funcionario', '', false, ?, now())`,
+      [novo.id, novo.padaria_id, novo.nome, email, senhaHash, VERSAO_TERMOS],
+    )
+    await registrarAceite(novo, 'cadastro', req, conn)
+  })
   res.status(201).json({ ok: true })
 })
 
@@ -403,29 +407,33 @@ authRouter.post('/setup', async (req, res) => {
     cargo: CARGO_DONO,
     foto: null,
   }
-  await pool.query('insert into padarias (id, dados, codigo_convite) values (?, ?, ?)', [
-    padariaId,
-    JSON.stringify(dados.padaria),
-    novoCodigoConvite(),
-  ])
-  await pool.query(
-    `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, telefone, cpf,
-       data_nascimento, endereco, ultimo_acesso, termos_versao, termos_aceitos_em)
-     values (?, ?, ?, ?, ?, 'dono', ?, ?, ?, ?, ?, now(), '${VERSAO_TERMOS}', now())`,
-    [
-      usuario.id,
+  const senhaHash = await hashSenha(dados.senha)
+  // Padaria, dono e aceite dos termos entram juntos: se um falhar, nada fica pela metade.
+  await transaction(async (conn) => {
+    await conn.query('insert into padarias (id, dados, codigo_convite) values (?, ?, ?)', [
       padariaId,
-      usuario.nome,
-      usuario.email,
-      await hashSenha(dados.senha),
-      CARGO_DONO,
-      dados.telefone ?? null,
-      dados.cpf ?? null,
-      dados.data_nascimento ?? null,
-      dados.endereco ? JSON.stringify(dados.endereco) : null,
-    ],
-  )
-  await registrarAceite(usuario, 'primeiro-acesso', req)
+      JSON.stringify(dados.padaria),
+      novoCodigoConvite(),
+    ])
+    await conn.query(
+      `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, telefone, cpf,
+         data_nascimento, endereco, ultimo_acesso, termos_versao, termos_aceitos_em)
+       values (?, ?, ?, ?, ?, 'dono', ?, ?, ?, ?, ?, now(), '${VERSAO_TERMOS}', now())`,
+      [
+        usuario.id,
+        padariaId,
+        usuario.nome,
+        usuario.email,
+        senhaHash,
+        CARGO_DONO,
+        dados.telefone ?? null,
+        dados.cpf ?? null,
+        dados.data_nascimento ?? null,
+        dados.endereco ? JSON.stringify(dados.endereco) : null,
+      ],
+    )
+    await registrarAceite(usuario, 'primeiro-acesso', req, conn)
+  })
   await iniciarSessao(res, usuario)
 })
 

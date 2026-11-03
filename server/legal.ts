@@ -74,14 +74,15 @@ export async function registrarAceite(
   pessoa: { id: string; padaria_id: string; nome: string; email: string },
   origem: 'cadastro' | 'primeiro-acesso' | 'novo-aceite' | 'contrato',
   req: { ip?: string; headers: Record<string, unknown> },
+  conn: Pick<typeof pool, 'query'> = pool,
 ) {
-  await pool.query(
+  await conn.query(
     `insert into aceites_termos (id, padaria_id, usuario_id, nome, email, versao, hash_termos, hash_privacidade,
        origem, ip, navegador)
      select ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
      where not exists (
        select 1 from aceites_termos
-       where usuario_id = ? and hash_termos = ? and hash_privacidade = ? and origem = ?
+       where usuario_id = ? and versao = ? and hash_termos = ? and hash_privacidade = ? and origem = ?
      )`,
     [
       randomUUID(),
@@ -96,6 +97,7 @@ export async function registrarAceite(
       req.ip?.slice(0, 64) ?? null,
       String(req.headers['user-agent'] ?? '').slice(0, 255),
       pessoa.id,
+      VERSAO_TERMOS,
       HASH_TERMOS,
       HASH_PRIVACIDADE,
       origem,
@@ -149,8 +151,8 @@ legalRouter.get('/contrato', async (_req, res) => {
   const u = res.locals.usuario as Usuario
   const [rows] = await pool.query<RowDataPacket[]>(
     `select nome_assinado, versao, hash_contrato, assinado_em from assinaturas_contrato
-     where padaria_id = ? and versao = ? order by assinado_em desc limit 1`,
-    [u.padaria_id, VERSAO_CONTRATO],
+     where padaria_id = ? and hash_contrato = ? order by assinado_em desc limit 1`,
+    [u.padaria_id, HASH_CONTRATO],
   )
   res.json({
     versao: VERSAO_CONTRATO,
@@ -159,6 +161,16 @@ legalRouter.get('/contrato', async (_req, res) => {
     assinatura: rows[0] ?? null,
   })
 })
+
+// O contrato inclui os Termos e a Política: assinar também registra o aceite deles.
+async function aceitarTermosPeloContrato(u: Usuario, req: { ip?: string; headers: Record<string, unknown> }) {
+  await registrarAceite(u, 'contrato', req)
+  await pool.query('update usuarios set termos_versao = ?, termos_aceitos_em = now() where id = ?', [
+    VERSAO_TERMOS,
+    u.id,
+  ])
+  esquecerUsuario(u.id)
+}
 
 legalRouter.post('/contrato', async (req, res) => {
   const u = res.locals.usuario as Usuario
@@ -180,6 +192,7 @@ legalRouter.post('/contrato', async (req, res) => {
     [u.padaria_id, HASH_CONTRATO],
   )
   if (jaAssinou[0]) {
+    await aceitarTermosPeloContrato(u, req)
     res.json(jaAssinou[0])
     return
   }
@@ -201,13 +214,7 @@ legalRouter.post('/contrato', async (req, res) => {
       u.padaria_id,
     ],
   )
-  await registrarAceite(u, 'contrato', req)
-  // O contrato inclui os Termos e a Política: assinar também registra o aceite deles.
-  await pool.query('update usuarios set termos_versao = ?, termos_aceitos_em = now() where id = ?', [
-    VERSAO_TERMOS,
-    u.id,
-  ])
-  esquecerUsuario(u.id)
+  await aceitarTermosPeloContrato(u, req)
   const [[assinatura]] = await pool.query<RowDataPacket[]>(
     'select nome_assinado, versao, hash_contrato, assinado_em from assinaturas_contrato where id = ?',
     [id],

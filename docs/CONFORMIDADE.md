@@ -19,7 +19,7 @@ Legenda: ✅ atendido no sistema · ⚠️ falta fazer · 👤 depende do respon
 | Correção (art. 18, III) | ✅ No próprio perfil; o dono corrige em Equipe | Perfil, Equipe |
 | Eliminação, anonimização e oposição (art. 18, IV e VI) | 👤 Pedido pelo e-mail, resposta em até 15 dias (art. 19). Exclusão manual pelo responsável | Política, item 10 |
 | Minimização (art. 6º, III) | ✅ Dados da equipe opcionais; nenhum dado sensível; CPF repetido não revela o titular | Cadastros |
-| Segurança (art. 46) | ✅ HTTPS e HSTS, TLS verificado até o banco, senhas com bcrypt, isolamento entre padarias, papéis, bloqueio por tentativas, 151 testes, Checagem do GitHub, Dependabot, bloqueio de senhas no código | `docs/TESTES.md`, `.github/` |
+| Segurança (art. 46) | ✅ HTTPS e HSTS, TLS verificado até o banco, senhas com bcrypt, isolamento entre padarias, papéis, bloqueio por tentativas, 152 testes, Checagem do GitHub, Dependabot, bloqueio de senhas no código | `docs/TESTES.md`, `.github/` |
 | Papéis de controlador e operador | ✅ Definidos nos Termos (item 6) e na Política (item 2): a padaria é controladora dos dados da equipe e dos clientes, e o Coffee Break é operador | `/termos`, `/privacidade` |
 | Transferência internacional (art. 33; Res. CD/ANPD 19/2024) | ⚠️👤 Informada na Política, mas faltam as cláusulas-padrão da ANPD (ver ação 2) | Render e Supabase nos EUA |
 | Registro das operações de tratamento (art. 37) | ⚠️ Modelo abaixo, a manter atualizado | Item 6 deste documento |
@@ -96,7 +96,7 @@ Antes de publicar qualquer funcionalidade nova, responda:
 - [ ] Usa **fornecedor ou serviço externo novo** (e-mail, pagamento, IA, mapa)? → listar na Política (item 6) e avaliar a transferência internacional.
 - [ ] Cria **cookie** ou rastreamento que não é essencial? → exige consentimento (banner).
 - [ ] Mexe em **dinheiro, preço ou cobrança**? → CDC, Decreto 7.962 e fiscal (NFS-e, NFC-e, IBS e CBS).
-- [ ] Mexe em **segurança ou acesso**? → `npm run teste` (151) e Checagem do GitHub verdes.
+- [ ] Mexe em **segurança ou acesso**? → `npm run teste` (152) e Checagem do GitHub verdes.
 - [ ] A release cita o que mudou nos documentos legais.
 
 ## Fontes consultadas (novembro de 2026)

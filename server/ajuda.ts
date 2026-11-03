@@ -14,21 +14,33 @@ const URL_NOTICIAS = `https://news.google.com/rss/search?q=${encodeURIComponent(
 const URL_RELEASES = 'https://api.github.com/repos/EvandroOdairCagniniJr/Coffee-Break/releases?per_page=8'
 
 const cache = new Map<string, { ate: number; dados: unknown }>()
+const buscando = new Map<string, Promise<unknown>>()
+const CINCO_MIN = 5 * 60 * 1000
 
 async function emCache<T>(chave: string, buscar: () => Promise<T>, vazio: T): Promise<T> {
   const atual = cache.get(chave)
   if (atual && atual.ate > Date.now()) return atual.dados as T
-  try {
-    const dados = await buscar()
-    cache.set(chave, { ate: Date.now() + UMA_HORA, dados })
-    return dados
-  } catch (err) {
-    console.warn(`Ajuda: não deu para buscar ${chave}:`, (err as Error).message)
-    // Sem internet ou serviço fora: usa o último resultado, ou lista vazia (tenta de novo em 5 min).
-    if (atual) return atual.dados as T
-    cache.set(chave, { ate: Date.now() + 5 * 60 * 1000, dados: vazio })
-    return vazio
-  }
+  // Vários pedidos ao mesmo tempo esperam a mesma busca, em vez de cada um abrir a sua.
+  const emAndamento = buscando.get(chave)
+  if (emAndamento) return emAndamento as Promise<T>
+  const busca = (async () => {
+    try {
+      const dados = await buscar()
+      cache.set(chave, { ate: Date.now() + UMA_HORA, dados })
+      return dados
+    } catch (err) {
+      console.warn(`Ajuda: não deu para buscar ${chave}:`, (err as Error).message)
+      // Sem internet ou serviço fora: usa o último resultado (ou lista vazia) e só tenta de novo
+      // em 5 min, para ninguém esperar o tempo limite a cada abertura da página.
+      const dados = (atual?.dados as T | undefined) ?? vazio
+      cache.set(chave, { ate: Date.now() + CINCO_MIN, dados })
+      return dados
+    } finally {
+      buscando.delete(chave)
+    }
+  })()
+  buscando.set(chave, busca)
+  return busca
 }
 
 const ENTIDADES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }
@@ -39,7 +51,8 @@ function textoLimpo(bruto: string) {
     .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e: string) => {
       if (e[0] === '#') {
         const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)
-        return Number.isFinite(n) ? String.fromCodePoint(n) : m
+        // Código fora do Unicode (ou inválido) fica como veio, em vez de derrubar a lista inteira.
+        return Number.isInteger(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : m
       }
       return ENTIDADES[e.toLowerCase()] ?? m
     })

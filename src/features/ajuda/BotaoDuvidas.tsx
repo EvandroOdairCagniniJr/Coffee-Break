@@ -17,6 +17,12 @@ type Mensagem =
   | { de: 'pessoa'; texto: string }
   | { de: 'assistente'; texto: string; itens?: ItemAjuda[]; semResposta?: boolean }
 
+const ABAS = [
+  ['assistente', 'Assistente'],
+  ['perguntas', 'Perguntas'],
+  ['suporte', 'Suporte'],
+] as const satisfies readonly (readonly [Aba, string])[]
+
 const rotuloTipo: Record<ItemAjuda['tipo'], string> = {
   pergunta: 'Pergunta frequente',
   guia: 'Guia passo a passo',
@@ -30,6 +36,11 @@ export function BotaoDuvidas() {
   const [aba, setAba] = useState<Aba>('assistente')
   const painelRef = useRef<HTMLDivElement>(null)
   const botaoRef = useRef<HTMLButtonElement>(null)
+
+  // Ao abrir, o foco entra no painel (aba ativa): quem usa teclado começa por ali.
+  useEffect(() => {
+    if (aberto) painelRef.current?.querySelector<HTMLElement>('[role=tab][aria-selected=true]')?.focus()
+  }, [aberto])
 
   useEffect(() => {
     if (!aberto) return
@@ -68,25 +79,36 @@ export function BotaoDuvidas() {
                 setAberto(false)
                 botaoRef.current?.focus()
               }}
-              className="rounded-lg p-1.5 text-[#fff6e8]/80 hover:bg-white/10 hover:text-white"
+              className="flex size-10 items-center justify-center rounded-lg text-[#fff6e8]/80 hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none"
             >
               <X className="size-5" />
             </button>
           </header>
 
-          <div role="tablist" className="grid grid-cols-3 border-b bg-muted/40 p-1 text-sm">
-            {(
-              [
-                ['assistente', 'Assistente'],
-                ['perguntas', 'Perguntas'],
-                ['suporte', 'Suporte'],
-              ] as const
-            ).map(([valor, rotulo]) => (
+          <div
+            role="tablist"
+            aria-label="Formas de ajuda"
+            className="grid grid-cols-3 border-b bg-muted/40 p-1 text-sm"
+            onKeyDown={(e) => {
+              // Setas trocam de aba, como em qualquer lista de abas.
+              const i = ABAS.findIndex(([v]) => v === aba)
+              const proxima = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null
+              if (proxima === null) return
+              e.preventDefault()
+              const valor = ABAS[(proxima + ABAS.length) % ABAS.length][0]
+              setAba(valor)
+              requestAnimationFrame(() => document.getElementById(`duvidas-aba-${valor}`)?.focus())
+            }}
+          >
+            {ABAS.map(([valor, rotulo]) => (
               <button
                 key={valor}
+                id={`duvidas-aba-${valor}`}
                 type="button"
                 role="tab"
                 aria-selected={aba === valor}
+                aria-controls="duvidas-conteudo"
+                tabIndex={aba === valor ? 0 : -1}
                 onClick={() => setAba(valor)}
                 className={cn(
                   'rounded-lg px-2 py-1.5 font-medium transition-colors',
@@ -98,7 +120,12 @@ export function BotaoDuvidas() {
             ))}
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div
+            id="duvidas-conteudo"
+            role="tabpanel"
+            aria-labelledby={`duvidas-aba-${aba}`}
+            className="min-h-0 flex-1 overflow-y-auto"
+          >
             {aba === 'assistente' && <Assistente irParaSuporte={() => setAba('suporte')} />}
             {aba === 'perguntas' && <Perguntas />}
             {aba === 'suporte' && <Suporte />}
@@ -164,7 +191,15 @@ function Assistente({ irParaSuporte }: { irParaSuporte: () => void }) {
 
   return (
     <div className="flex h-full min-h-[360px] flex-col">
-      <div className="flex-1 space-y-3 p-4" aria-live="polite">
+      {/* Leitor de tela: anuncia só a resposta nova, não a conversa inteira. */}
+      <p className="sr-only" aria-live="polite">
+        {(() => {
+          const ultima = conversa[conversa.length - 1]
+          if (conversa.length === 1 || ultima.de !== 'assistente') return ''
+          return [ultima.texto, ...(ultima.itens ?? []).map((it) => `${it.titulo}. ${it.resposta}`)].join(' ')
+        })()}
+      </p>
+      <div className="flex-1 space-y-3 p-4">
         {conversa.map((m, i) =>
           m.de === 'pessoa' ? (
             <p key={i} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground">

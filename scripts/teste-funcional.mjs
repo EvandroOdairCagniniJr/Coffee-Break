@@ -376,6 +376,8 @@ const lidas = lerRss(rss)
 confere('RSS: título sem o nome da fonte repetido', lidas[0]?.titulo === 'Padarias crescem 8%' && lidas[0]?.fonte === 'Jornal do Pão', JSON.stringify(lidas[0]))
 confere('RSS: link javascript: é descartado', lidas.length === 2 && lidas.every((n) => n.link.startsWith('https://')), JSON.stringify(lidas))
 confere('RSS: entidades HTML viram texto', lidas[1]?.titulo === 'Preço do trigo é destaque', lidas[1]?.titulo)
+const comCodigoRuim = lerRss('<item><title>Pão &#x110000; quente &#99999999;</title><link>https://exemplo.com/c</link></item>')
+confere('RSS: caractere fora do Unicode não derruba a lista', comCodigoRuim.length === 1, JSON.stringify(comCodigoRuim))
 confere('release: destaques sem marcação Markdown', JSON.stringify(destaquesDaRelease('## Título\n- **Novo** recurso `x`\n- Veja [aqui](https://a.b)\ntexto')) === JSON.stringify(['Novo recurso x', 'Veja aqui']))
 
 // ------------------------------------------------------------------ resultado
