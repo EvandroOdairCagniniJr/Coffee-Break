@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, ArrowRight, FileText, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import { useContagem } from '@/hooks/useContagem'
 import { Link } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { formatBRL } from '@/lib/format'
@@ -32,7 +33,9 @@ export function VisaoGeral({ abrirPadaria }: { abrirPadaria: (id: string) => voi
         <div className="relative grid gap-6 lg:grid-cols-[auto_1fr] lg:items-end">
           <div>
             <p className="text-sm text-[#fff6e8]/70">Esperando a sua liberação</p>
-            <p className="font-heading text-7xl leading-none font-semibold tabular-nums sm:text-8xl">{pendentes}</p>
+            <p className="font-heading text-7xl leading-none font-semibold tabular-nums sm:text-8xl">
+              <Contador valor={pendentes} />
+            </p>
             <p className="mt-2 text-sm text-[#fff6e8]/70">
               {r.novas_7_dias} cadastro(s) novo(s) nesta semana
             </p>
@@ -69,20 +72,20 @@ export function VisaoGeral({ abrirPadaria }: { abrirPadaria: (id: string) => voi
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Indicador rotulo="Padarias liberadas" valor={r.por_status.aprovada} detalhe={`${r.padarias_vendendo_hoje} vendendo nas últimas 24 h`} />
-        <Indicador rotulo="Pessoas usando" valor={r.usuarios_ativos} detalhe={`${r.pessoas_hoje} entraram nas últimas 24 h`} />
-        <Indicador rotulo="Vendas em 30 dias" valor={r.vendas_30_dias.toLocaleString('pt-BR')} detalhe={formatBRL(r.faturamento_30_dias)} />
+      <div className="entra-escalonado grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Indicador rotulo="Padarias liberadas" valor={<Contador valor={r.por_status.aprovada} />} detalhe={`${r.padarias_vendendo_hoje} vendendo nas últimas 24 h`} />
+        <Indicador rotulo="Pessoas usando" valor={<Contador valor={r.usuarios_ativos} />} detalhe={`${r.pessoas_hoje} entraram nas últimas 24 h`} />
+        <Indicador rotulo="Vendas em 30 dias" valor={<Contador valor={r.vendas_30_dias} />} detalhe={formatBRL(r.faturamento_30_dias)} />
         <Indicador
           rotulo="Alertas de acesso (24 h)"
-          valor={r.alertas_24h}
+          valor={<Contador valor={r.alertas_24h} />}
           detalhe="Senhas erradas e bloqueios"
           alerta={r.alertas_24h >= 10}
           link="/plataforma/atividade"
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="entra-escalonado grid gap-4 lg:grid-cols-[2fr_1fr]">
         <Cartao>
           <Grafico
             titulo="Faturamento das padarias"
@@ -116,7 +119,7 @@ function Indicador({
   link,
 }: {
   rotulo: string
-  valor: number | string
+  valor: ReactNode
   detalhe?: string
   alerta?: boolean
   link?: string
@@ -131,7 +134,7 @@ function Indicador({
       {detalhe && <p className="mt-0.5 truncate text-xs text-muted-foreground">{detalhe}</p>}
     </>
   )
-  const classe = 'rounded-2xl border bg-card p-4 shadow-sm'
+  const classe = 'cartao-vivo rounded-2xl border bg-card p-4 shadow-sm'
   return link ? (
     <Link to={link} className={cn(classe, 'block transition-colors hover:border-primary/50')}>
       {corpo}
@@ -221,4 +224,9 @@ function Grafico({
       </div>
     </div>
   )
+}
+
+function Contador({ valor }: { valor: number }) {
+  const n = useContagem(valor)
+  return <>{Math.round(n).toLocaleString('pt-BR')}</>
 }

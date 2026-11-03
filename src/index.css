@@ -444,3 +444,73 @@
 @media (prefers-reduced-motion: reduce) {
   .adm-fundo::after, .adm-pulso { animation: none; }
 }
+
+/* ------------------------------------------------------------------ movimento
+   Curvas e tempos do sistema inteiro (receitas do Emil Kowalski: ease-out forte para entrar e
+   sair, ease-in-out para mover na tela; UI abaixo de 300 ms). */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Toque em qualquer botão: afunda um pouco, como um botão de verdade. */
+@media (prefers-reduced-motion: no-preference) {
+  :where(button, [role='tab'], [role='option'], a.cartao-vivo):not(:disabled):active { scale: 0.97; }
+}
+
+/* Cartão clicável: sobe um pouco ao passar o mouse (só com mouse, não no toque). */
+.cartao-vivo {
+  transition: translate 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cartao-vivo:hover { translate: 0 -2px; box-shadow: 0 14px 30px -18px rgba(59, 36, 20, 0.45); }
+}
+
+/* Grupo entrando em sequência (cartões do painel): 40 ms entre um e outro. */
+@keyframes entra-item { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+.entra-escalonado > * { animation: entra-item 320ms var(--ease-out) both; }
+.entra-escalonado > :nth-child(2) { animation-delay: 40ms; }
+.entra-escalonado > :nth-child(3) { animation-delay: 80ms; }
+.entra-escalonado > :nth-child(4) { animation-delay: 120ms; }
+.entra-escalonado > :nth-child(5) { animation-delay: 160ms; }
+.entra-escalonado > :nth-child(6) { animation-delay: 200ms; }
+.entra-escalonado > :nth-child(n + 7) { animation-delay: 240ms; }
+
+/* Xícara explodida da tela de entrada (XicaraExplodida.tsx). */
+.xic-palco { perspective: 1200px; }
+.xic-palco > svg {
+  transform: rotateX(var(--incl-x, 0deg)) rotateY(var(--incl-y, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 500ms var(--ease-out);
+}
+.xic-peca { transition: transform 900ms var(--ease-in-out), opacity 700ms var(--ease-out); }
+.xic-palco:not([data-montada]) .xic-peca { opacity: 0; }
+.xic-rotulo { opacity: 0; translate: -10px 0; transition: opacity 320ms var(--ease-out), translate 320ms var(--ease-out); }
+.xic-palco[data-aberta] .xic-rotulo { opacity: 1; translate: 0 0; }
+.xic-chao { transition: opacity 600ms var(--ease-out); }
+.xic-palco[data-aberta] .xic-chao { opacity: 0.12; }
+.xic-vapor path { stroke-dasharray: 46 160; animation: xic-vapor 3.4s linear infinite; }
+.xic-vapor path:nth-child(2) { animation-delay: -1.1s; }
+.xic-vapor path:nth-child(3) { animation-delay: -2.2s; }
+@keyframes xic-vapor { from { stroke-dashoffset: 206; opacity: 0; } 30% { opacity: 1; } to { stroke-dashoffset: 0; opacity: 0; } }
+.xic-botao { transition: background-color 200ms ease, scale 160ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .xic-botao:hover { background-color: rgba(255, 255, 255, 0.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xic-palco > svg { transform: none; transition: none; }
+  .xic-peca { transition: opacity 200ms ease; }
+  .xic-vapor path { animation: none; stroke-dasharray: none; }
+  .entra-escalonado > * { animation: entra-item-suave 200ms ease both; }
+}
+@keyframes entra-item-suave { from { opacity: 0; } to { opacity: 1; } }
+
+/* Tela de entrada: o texto sobe e o cartão de login aparece logo depois da xícara montar. */
+@keyframes entrada-sobe { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+.entrada-sobe { animation: entrada-sobe 600ms var(--ease-out) both; }
+@keyframes entrada-cartao { from { opacity: 0; translate: 0 18px; scale: 0.98; } to { opacity: 1; translate: 0 0; scale: 1; } }
+.entrada-cartao { animation: entrada-cartao 520ms 180ms var(--ease-out) both; }
+@media (prefers-reduced-motion: reduce) {
+  .entrada-sobe, .entrada-cartao { animation: entra-item-suave 200ms ease both; }
+}

@@ -8,6 +8,7 @@ import { LogoPao } from '@/components/LogoPao'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { XicaraExplodida } from '@/features/auth/XicaraExplodida'
 import { useAuth } from '@/features/auth/AuthContext'
 import { EsqueciSenha } from '@/features/auth/EsqueciSenha'
 import { PrimeiroAcesso } from '@/features/auth/PrimeiroAcesso'
@@ -277,8 +278,31 @@ export function LoginPage() {
   if (modo === 'padaria') return <PrimeiroAcesso onVoltar={() => setModo('criar')} />
 
   return (
-    <div className="flex min-h-svh items-center justify-center fundo-padaria px-4 py-8">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border bg-card/95 p-8 shadow-xl shadow-amber-900/10">
+    <div className="grid min-h-svh lg:grid-cols-[1.1fr_1fr]">
+      {/* Destaque: a xícara que se desmonta nas partes do sistema */}
+      <section className="adm-fundo relative flex flex-col justify-center overflow-hidden px-6 pt-8 pb-4 text-[#fff6e8] lg:px-14 lg:py-12">
+        <div className="relative z-10 mx-auto w-full max-w-xl">
+          <p className="entrada-sobe text-sm font-semibold text-amber-300">Coffee Break</p>
+          <h2 className="entrada-sobe mt-1 font-heading text-3xl leading-tight font-semibold [animation-delay:60ms] sm:text-4xl lg:text-5xl">
+            A padaria inteira, numa xícara.
+          </h2>
+          <p className="entrada-sobe mt-3 hidden max-w-md text-[#fff6e8]/70 [animation-delay:120ms] lg:block">
+            Balcão, caixa, estoque, produção e números conversando entre si. Passe o mouse na xícara
+            para ver cada parte.
+          </p>
+        </div>
+        <div className="relative z-10 mt-4 lg:mt-8">
+          <div className="lg:hidden">
+            <XicaraExplodida compacta />
+          </div>
+          <div className="hidden lg:block">
+            <XicaraExplodida />
+          </div>
+        </div>
+      </section>
+
+      <div className="flex items-center justify-center fundo-padaria px-4 py-8">
+      <div className="entrada-cartao w-full max-w-sm space-y-6 rounded-2xl border bg-card/95 p-8 shadow-xl shadow-amber-900/10">
         <div className="space-y-2 text-center">
           <LogoPao className="mx-auto size-16 rounded-2xl shadow-md" />
           <h1 className="font-heading text-3xl font-semibold tracking-tight">Coffee Break</h1>
@@ -355,6 +379,7 @@ export function LoginPage() {
           </>
         )}
         <LinksLegais />
+      </div>
       </div>
     </div>
   )
