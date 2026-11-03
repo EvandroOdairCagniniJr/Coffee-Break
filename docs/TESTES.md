@@ -4,9 +4,9 @@ Dois testes automáticos, que rodam isolados: banco temporário em memória, ser
 
 | Comando | O que testa | Verificações |
 |---|---|---|
-| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 135 |
+| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 156 |
 | `npm run teste:seguranca` | Ataques: login forjado, isolamento entre padarias, papéis, SQL injection, CSRF, vazamentos e força bruta | 45 |
-| `npm run teste` | Os dois, em sequência | 180 |
+| `npm run teste` | Os dois, em sequência | 201 |
 
 Rode `npm run teste` antes de todo push (veja [DEPLOY.md](DEPLOY.md)).
 
@@ -33,6 +33,7 @@ Padaria fictícia: dona (dono), Caio (funcionário) e os produtos Pão francês 
 | 15 | Termos e LGPD | Criar padaria ou conta sem aceitar os termos é recusado · aceite registrado com data e versão · funcionário cadastrado pelo dono aceita no primeiro acesso · "Baixar meus dados" traz perfil e acessos, sem senha nem dados de outros · sem login não baixa nada · contrato: só o dono assina, com o nome da conta, hash do texto exato · **provas no banco**: texto inteiro de cada versão, histórico de aceites com IP, o banco recusa alterar ou apagar · repetir aceite ou assinatura não grava linhas novas |
 | 16 | Central de dúvidas | Notícias e novidades exigem login e respondem com lista (vazia se a internet falhar) · RSS: fonte separada do título, link `javascript:` descartado, entidades HTML viram texto · destaques da release sem Markdown |
 | 17 | Liberação pela administração | Padaria nova nasce em análise e não usa o sistema · dono não sabe que existe administração · documento PDF aceito, arquivo disfarçado e acima de 3 MB recusados · não administrador recebe 404 · fila, detalhe e download do documento (anexo, tipo conferido) · recusar exige motivo · nova análise · transição inválida barrada · liberar, suspender e reativar valem na hora · histórico imutável |
+| 18 | Central de administração | Um único administrador (o banco recusa o segundo) · visão geral com 30 dias e alertas · busca rápida · pessoas de todas as padarias · bloquear derruba o login e a sessão aberta · não bloqueia a própria conta · anotações internas que o dono não vê · encerrar sessões da padaria · atividade e decisões · comunicados por público, encerrados somem · planilha CSV neutraliza fórmula escondida |
 
 ## Quando um teste falhar
 

@@ -144,6 +144,38 @@ create table if not exists plataforma_acoes (
   created_at timestamptz not null default now()
 );
 create index if not exists plataforma_acoes_padaria_idx on plataforma_acoes (padaria_id, created_at);
+-- O histórico também guarda ações sobre pessoas e comunicados (sem padaria ou sem mudança de status).
+alter table plataforma_acoes alter column padaria_id drop not null;
+alter table plataforma_acoes alter column status_novo drop not null;
+alter table plataforma_acoes add column if not exists alvo_usuario_id text references usuarios (id);
+create index if not exists plataforma_acoes_data_idx on plataforma_acoes (created_at);
+
+-- Um único administrador da plataforma: o banco recusa uma segunda conta com a marca.
+create unique index if not exists usuarios_um_admin_idx on usuarios ((true)) where plataforma_admin;
+
+-- Anotações internas da administração sobre cada padaria (o dono nunca vê).
+create table if not exists plataforma_notas (
+  id text primary key,
+  padaria_id text not null references padarias (id),
+  admin_id text not null references usuarios (id),
+  texto text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists plataforma_notas_padaria_idx on plataforma_notas (padaria_id, created_at);
+
+-- Comunicados da administração para as padarias (faixa no topo do sistema).
+create table if not exists plataforma_comunicados (
+  id text primary key,
+  titulo varchar(120) not null,
+  texto varchar(600) not null,
+  tom varchar(20) not null default 'info',
+  publico varchar(20) not null default 'todos',
+  ativo boolean not null default true,
+  expira_em timestamptz,
+  criado_por text references usuarios (id),
+  created_at timestamptz not null default now()
+);
+create index if not exists plataforma_comunicados_ativo_idx on plataforma_comunicados (ativo, created_at);
 
 -- Provas não se alteram: o banco recusa update e delete nessas três tabelas.
 create or replace function bloquear_alteracao_prova() returns trigger language plpgsql as $$

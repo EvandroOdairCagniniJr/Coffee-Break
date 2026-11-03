@@ -10,7 +10,7 @@ Endereço: https://padaria-info.onrender.com · Painel: Render → serviço `pad
 - [ ] `npx tsc -b`: sem erros de tipo.
 - [ ] `npx oxlint`: sem **erros** (avisos de fast refresh já conhecidos podem ficar).
 - [ ] `npm run build`: o site compila.
-- [ ] `npm run teste`: **180 de 180** (135 funcionais + 45 de segurança), num banco temporário. A **Checagem** do GitHub roda o mesmo a cada push: confira se ficou verde.
+- [ ] `npm run teste`: **201 de 201** (156 funcionais + 45 de segurança), num banco temporário. A **Checagem** do GitHub roda o mesmo a cada push: confira se ficou verde.
 - [ ] `npm audit --omit=dev`: 0 vulnerabilidades no que vai para produção.
 - [ ] Mexeu em tela? Confira num servidor de demonstração (banco em memória, dados fictícios) ou no `npm run dev` com o banco local.
 
@@ -71,5 +71,7 @@ Para dar a administração a uma conta (ela precisa já existir no site):
 2. Rode `npm run plataforma:admin -- seu@email.com`.
 3. Volte o `DATABASE_URL` para o banco local.
 4. Entre de novo no site: o item **Administração** aparece no menu.
+
+A plataforma aceita **um único administrador**: o banco recusa uma segunda conta com a marca. Para trocar, tire a marca da conta atual primeiro.
 
 Para tirar: `npm run plataforma:admin -- email --tirar`. Não existe tela nem rota para dar essa marca: só quem tem o acesso ao banco consegue.

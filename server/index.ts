@@ -28,6 +28,7 @@ const { legalRouter, registrarDocumentosLegais } = await import('./legal.ts')
 const { ajudaRouter } = await import('./ajuda.ts')
 const { liberacaoRouter } = await import('./liberacao.ts')
 const { plataformaRouter } = await import('./plataforma.ts')
+const { comunicadosRouter } = await import('./comunicados.ts')
 const { errorHandler } = await import('./http.ts')
 const { agendarLimpeza, cabecalhosSeguranca, limiteGeral, mesmaOrigem, semCache } = await import(
   './seguranca.ts'
@@ -80,6 +81,7 @@ app.use('/api/auth', authRouter)
 const liberada = [exigirLogin, exigirPadariaLiberada]
 app.use('/api/liberacao', exigirLogin, liberacaoRouter)
 app.use('/api/plataforma', exigirLogin, plataformaRouter)
+app.use('/api/comunicados', exigirLogin, comunicadosRouter)
 app.use('/api/equipe', liberada, equipeRouter)
 app.use('/api/time', liberada, timeRouter)
 app.use('/api/padaria', liberada, padariaRouter)

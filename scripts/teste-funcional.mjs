@@ -99,7 +99,7 @@ await db.query("update padaria.padarias set status = 'aprovada'")
 // Entrar de novo lê a conta do banco (o servidor guarda a sessão em cache por 15 s).
 await api(null, 'POST', '/auth/login', { email: `rosa.${id}@teste.local`, senha: SENHA })
 await api(dono, 'POST', '/equipe/membros', { nome: 'Caio Balcão', email: `caio.${id}@teste.local`, senha: SENHA, papel: 'funcionario' })
-const func = (await api(null, 'POST', '/auth/login', { email: `caio.${id}@teste.local`, senha: SENHA })).cookie
+let func = (await api(null, 'POST', '/auth/login', { email: `caio.${id}@teste.local`, senha: SENHA })).cookie
 
 const criar = async (p) => (await api(dono, 'POST', '/produtos', p)).json.id
 const P = {
@@ -451,6 +451,60 @@ confere('reativada, volta a funcionar', r.status === 200, `status ${r.status}`)
 r = await api(adm, 'GET', `/plataforma/padarias/${nova?.id}`)
 confere('cada decisão fica no histórico, com o motivo', r.json?.historico?.length === 4 && r.json.historico.some((h) => h.acao === 'recusar' && h.motivo), JSON.stringify(r.json?.historico?.map((h) => h.acao)))
 confere('o histórico da administração não pode ser apagado', await db.query('delete from padaria.plataforma_acoes').then(() => false, (e) => /Registro legal/.test(e.message)))
+cenario('18. Central de administração: pessoas, atividade, comunicados e controle')
+confere(
+  'só existe um administrador: o banco recusa um segundo',
+  await db.query(`update padaria.usuarios set plataforma_admin = true where email = 'nina.${id}@teste.local'`).then(() => false, (e) => /unique|duplicate|único/i.test(e.message)),
+)
+r = await api(adm, 'GET', '/plataforma/resumo')
+confere('a visão geral traz 30 dias de série e os alertas', r.json?.serie?.length === 30 && 'alertas_24h' in r.json && Array.isArray(r.json?.fila), `itens ${r.json?.serie?.length}`)
+r = await api(adm, 'GET', '/plataforma/busca?q=nina')
+confere('a busca rápida acha a pessoa e a padaria dela', r.json?.pessoas?.some((p) => p.email === `nina.${id}@teste.local` && p.padaria === 'Padaria Nova'), JSON.stringify(r.json))
+r = await api(adm, 'GET', '/plataforma/pessoas?busca=caio')
+const caio = r.json?.find?.((p) => p.email === `caio.${id}@teste.local`)
+confere('a lista de pessoas mostra gente de todas as padarias', caio?.padaria === 'Padaria Teste' && caio?.ativo === true, JSON.stringify(caio))
+r = await api(adm, 'POST', `/plataforma/pessoas/${caio?.id}/acesso`, { ativo: false })
+confere('a administração bloqueia o acesso de uma pessoa', r.status === 200, `status ${r.status}`)
+r = await api(null, 'POST', '/auth/login', { email: `caio.${id}@teste.local`, senha: SENHA })
+confere('pessoa bloqueada não entra mais', r.status >= 400, `status ${r.status}`)
+r = await api(func, 'GET', '/produtos')
+confere('e a sessão que estava aberta cai na hora', r.status === 401, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/pessoas/${caio?.id}/acesso`, { ativo: true })
+r = await api(null, 'POST', '/auth/login', { email: `caio.${id}@teste.local`, senha: SENHA })
+confere('liberada de novo, a pessoa entra', r.status === 200, `status ${r.status}`)
+func = r.cookie
+const meuId = (await api(adm, 'GET', '/auth/me')).json?.id
+r = await api(adm, 'POST', `/plataforma/pessoas/${meuId}/acesso`, { ativo: false })
+confere('a administração não bloqueia a própria conta', r.status === 400, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/notas`, { texto: 'Liguei para a Nina, vai mandar o alvará.' })
+r = await api(adm, 'GET', `/plataforma/padarias/${nova?.id}`)
+confere('anotação interna fica na ficha da padaria', r.json?.notas?.[0]?.texto?.includes('alvará'), JSON.stringify(r.json?.notas))
+r = await api(nina, 'GET', '/liberacao')
+confere('o dono não vê as anotações internas', !r.texto.includes('alvará'))
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/encerrar-sessoes`)
+confere('encerrar as sessões da padaria derruba os logins dela', r.status === 200 && r.json?.pessoas === 1 && (await api(nina, 'GET', '/produtos')).status === 401, JSON.stringify(r.json))
+r = await api(adm, 'GET', '/plataforma/atividade?tipo=alertas')
+confere('a atividade lista as tentativas suspeitas', r.status === 200 && Array.isArray(r.json), `status ${r.status}`)
+r = await api(adm, 'GET', '/plataforma/atividade?tipo=decisoes')
+confere('e o histórico de todas as decisões, com o nome de quem foi afetado', r.json?.some?.((d) => d.acao === 'bloquear_pessoa' && d.alvo === 'Caio Balcão'), `itens ${r.json?.length}`)
+r = await api(adm, 'POST', '/plataforma/comunicados', { titulo: 'Manutenção domingo', texto: 'O sistema para por 10 minutos às 23h.', tom: 'aviso', publico: 'donos' })
+confere('a administração publica um comunicado', r.status === 201, `status ${r.status} ${r.texto}`)
+const comunicadoId = r.json?.id
+r = await api(dono, 'GET', '/comunicados')
+confere('o dono vê o comunicado para donos', r.json?.some?.((c) => c.titulo === 'Manutenção domingo'), JSON.stringify(r.json))
+r = await api(func, 'GET', '/comunicados')
+confere('o funcionário não vê o comunicado só para donos', Array.isArray(r.json) && !r.json.some((c) => c.titulo === 'Manutenção domingo'), JSON.stringify(r.json))
+r = await api(adm, 'PATCH', `/plataforma/comunicados/${comunicadoId}`, { ativo: false })
+r = await api(dono, 'GET', '/comunicados')
+confere('comunicado encerrado some para todos', !r.json?.some?.((c) => c.titulo === 'Manutenção domingo'), JSON.stringify(r.json))
+r = await api(func, 'POST', '/plataforma/comunicados', { titulo: 'Hack', texto: 'tentando publicar' })
+confere('quem não administra não publica comunicado', r.status === 404, `status ${r.status}`)
+await db.query(`update padaria.padarias set dados = jsonb_set(dados, '{razao_social}', '"=HYPERLINK(1)"') where id = '${nova?.id}'`)
+const planilha = await fetch(`${BASE}/plataforma/padarias?formato=csv`, { headers: { Cookie: adm } })
+const csv = await planilha.text()
+confere('a planilha sai em CSV, com acento e cabeçalho', planilha.status === 200 && /text\/csv/.test(planilha.headers.get('content-type') ?? '') && csv.includes('Razão social'), `status ${planilha.status}`)
+confere('a planilha neutraliza fórmula escondida no cadastro', csv.includes(`"'=HYPERLINK(1)"`) && !csv.includes(`;"=HYPERLINK`))
+
 await db.query(`update padaria.usuarios set plataforma_admin = false where email = 'rosa.${id}@teste.local'`)
 
 // ------------------------------------------------------------------ resultado

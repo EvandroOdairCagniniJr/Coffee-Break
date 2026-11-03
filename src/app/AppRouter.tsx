@@ -101,7 +101,7 @@ export function AppRouter() {
             </Route>
 
             <Route element={<RequirePlataforma />}>
-              <Route path="plataforma" element={<PlataformaPage />} />
+              <Route path="plataforma/*" element={<PlataformaPage />} />
             </Route>
 
             <Route element={<RequirePapel papeis={['dono']} />}>

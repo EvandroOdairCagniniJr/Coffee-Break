@@ -13,6 +13,8 @@ import {
   Receipt,
   Scale,
   ShieldCheck,
+  Activity,
+  Megaphone,
   ShoppingCart,
   Store,
   Tag,
@@ -28,6 +30,8 @@ import { cn } from '@/lib/utils'
 import { BoasVindas } from '@/app/BoasVindas'
 import { PortaoContrato } from '@/features/legal/PortaoContrato'
 import { TelaLiberacao } from '@/features/liberacao/TelaLiberacao'
+import { FaixaComunicados } from '@/features/plataforma/FaixaComunicados'
+import { usePendentesPlataforma } from '@/features/plataforma/usePendentes'
 import { PortaoTermos } from '@/features/legal/TermosPendentes'
 import { Avatar } from '@/components/Avatar'
 import { LogoPadaria, LogoPao } from '@/components/LogoPao'
@@ -54,6 +58,17 @@ type ItemMenu = {
 
 // Menu em seções. Mesmas regras das rotas em AppRouter (RequirePapel).
 const secoes: { titulo: string | null; itens: ItemMenu[] }[] = [
+  {
+    // Só para a administração da plataforma: para todo o resto, esta seção não existe.
+    titulo: 'Administração',
+    itens: [
+      { to: '/plataforma', label: 'Visão geral', icon: ShieldCheck, papeis: todos, end: true, somentePlataforma: true },
+      { to: '/plataforma/padarias', label: 'Padarias', icon: Store, papeis: todos, somentePlataforma: true },
+      { to: '/plataforma/pessoas', label: 'Pessoas', icon: Users, papeis: todos, somentePlataforma: true },
+      { to: '/plataforma/atividade', label: 'Atividade', icon: Activity, papeis: todos, somentePlataforma: true },
+      { to: '/plataforma/comunicados', label: 'Comunicados', icon: Megaphone, papeis: todos, somentePlataforma: true },
+    ],
+  },
   {
     titulo: null,
     itens: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, papeis: gestao }],
@@ -91,7 +106,6 @@ const secoes: { titulo: string | null; itens: ItemMenu[] }[] = [
       { to: '/equipe', label: 'Equipe', icon: Users, papeis: todos },
       { to: '/padaria', label: 'Minha padaria', icon: Store, papeis: ['dono'] },
       { to: '/guia', label: 'Guia e dicas', icon: BookOpen, papeis: todos },
-      { to: '/plataforma', label: 'Administração', icon: ShieldCheck, papeis: todos, somentePlataforma: true },
       { to: '/saber', label: 'Leis e boas práticas', icon: Scale, papeis: todos },
     ],
   },
@@ -149,6 +163,8 @@ function LayoutDoSistema() {
   const { pathname } = useLocation()
   // Dono e gerência: mudanças de perfil que ainda não viram (aparece no item Equipe).
   const novidades = useNovidadesNaoVistas()
+  // Administração: quantas padarias esperam liberação (aparece no item Padarias).
+  const pendentes = usePendentesPlataforma(user?.plataforma === true)
 
   // Com a tela atual já aberta, baixa os outros módulos sem atrapalhar.
   useEffect(() => {
@@ -188,6 +204,14 @@ function LayoutDoSistema() {
                 >
                   <item.icon className="size-4" />
                   {item.label}
+                  {item.to === '/plataforma/padarias' && pendentes > 0 && (
+                    <span
+                      className="ml-auto rounded-full bg-amber-400 px-1.5 text-[11px] leading-5 font-bold text-[#3b2414]"
+                      title={`${pendentes} padaria(s) esperando liberação`}
+                    >
+                      {pendentes}
+                    </span>
+                  )}
                   {item.to === '/equipe' && novidades > 0 && (
                     <span
                       className="ml-auto rounded-full bg-destructive px-1.5 text-[11px] leading-5 font-semibold text-white"
@@ -236,7 +260,7 @@ function LayoutDoSistema() {
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{user.nome || user.email}</div>
               <div className="truncate text-xs text-sidebar-foreground/60">
-                {user.cargo || papelLabels[user.papel]} · Editar perfil
+                {user.plataforma ? 'Administração do Coffee Break' : user.cargo || papelLabels[user.papel]} · Editar perfil
               </div>
             </div>
           </button>
@@ -309,6 +333,7 @@ function LayoutDoSistema() {
             <BoasVindas />
           </PortaoTermos>
           </PortaoContrato>
+          <FaixaComunicados />
           {/* key: cada troca de tela reapresenta o conteúdo com uma entrada suave. */}
           <div key={pathname} className="tela-entra flex min-h-0 flex-1 flex-col">
             <Outlet />
