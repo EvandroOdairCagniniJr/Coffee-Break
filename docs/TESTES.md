@@ -4,9 +4,9 @@ Dois testes automáticos, que rodam isolados: banco temporário em memória, ser
 
 | Comando | O que testa | Verificações |
 |---|---|---|
-| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 99 |
+| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 106 |
 | `npm run teste:seguranca` | Ataques: login forjado, isolamento entre padarias, papéis, SQL injection, CSRF, vazamentos e força bruta | 45 |
-| `npm run teste` | Os dois, em sequência | 144 |
+| `npm run teste` | Os dois, em sequência | 151 |
 
 Rode `npm run teste` antes de todo push (veja [DEPLOY.md](DEPLOY.md)).
 
@@ -31,6 +31,7 @@ Padaria fictícia: dona (dono), Caio (funcionário) e os produtos Pão francês 
 | 13 | Metas | Semana menor que o dia é recusada (com mensagem) · mês menor que o dia é recusado · metas coerentes são salvas e aparecem no painel · funcionário não define metas |
 | 14 | Minha padaria | Logo e comprovante personalizado salvos e devolvidos iguais · logo que não é imagem, cor fora da lista e título longo são recusados · funcionário vê a logo |
 | 15 | Termos e LGPD | Criar padaria ou conta sem aceitar os termos é recusado · aceite registrado com data e versão · funcionário cadastrado pelo dono aceita no primeiro acesso · "Baixar meus dados" traz perfil e acessos, sem senha nem dados de outros · sem login não baixa nada · contrato: só o dono assina, com o nome da conta, hash do texto exato · **provas no banco**: texto inteiro de cada versão, histórico de aceites com IP, o banco recusa alterar ou apagar · repetir aceite ou assinatura não grava linhas novas |
+| 16 | Central de dúvidas | Notícias e novidades exigem login e respondem com lista (vazia se a internet falhar) · RSS: fonte separada do título, link `javascript:` descartado, entidades HTML viram texto · destaques da release sem Markdown |
 
 ## Quando um teste falhar
 

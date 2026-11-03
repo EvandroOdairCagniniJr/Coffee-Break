@@ -25,6 +25,7 @@ const { recomendacoesRouter } = await import('./recomendacoes.ts')
 const { analiseRouter } = await import('./analise.ts')
 const { promocoesRouter } = await import('./promocoes.ts')
 const { legalRouter, registrarDocumentosLegais } = await import('./legal.ts')
+const { ajudaRouter } = await import('./ajuda.ts')
 const { errorHandler } = await import('./http.ts')
 const { agendarLimpeza, cabecalhosSeguranca, limiteGeral, mesmaOrigem, semCache } = await import(
   './seguranca.ts'
@@ -81,6 +82,7 @@ app.use('/api/recomendacoes', exigirLogin, recomendacoesRouter)
 app.use('/api/analise', exigirLogin, analiseRouter)
 app.use('/api/promocoes', exigirLogin, promocoesRouter)
 app.use('/api/legal', exigirLogin, legalRouter)
+app.use('/api/ajuda', exigirLogin, ajudaRouter)
 app.use('/api', exigirLogin, perdasRouter)
 app.use('/api', exigirLogin, apiRouter)
 app.use('/api', (_req, res) => {

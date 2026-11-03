@@ -359,6 +359,25 @@ confere('o banco recusa apagar uma assinatura', await recusa('delete from padari
 confere('o banco recusa apagar o histórico de aceites', await recusa('delete from padaria.aceites_termos'))
 confere('o banco recusa alterar o texto guardado', await recusa(`update padaria.documentos_legais set texto = 'x'`))
 
+cenario('16. Central de dúvidas: notícias e novidades')
+r = await api(null, 'GET', '/ajuda/noticias')
+confere('sem login não vê as notícias', r.status === 401, `status ${r.status}`)
+r = await api(func, 'GET', '/ajuda/noticias')
+confere('notícias respondem com uma lista (vazia se a internet falhar)', r.status === 200 && Array.isArray(r.json?.itens), `status ${r.status}`)
+r = await api(func, 'GET', '/ajuda/novidades')
+confere('novidades respondem com uma lista', r.status === 200 && Array.isArray(r.json?.itens), `status ${r.status}`)
+const { lerRss, destaquesDaRelease } = await import('../server/ajuda.ts')
+const rss = `<rss><channel>
+<item><title>Padarias crescem 8% - Jornal do Pão</title><link>https://exemplo.com/a</link><pubDate>Mon, 02 Nov 2026 10:00:00 GMT</pubDate><source url="https://exemplo.com">Jornal do Pão</source></item>
+<item><title><![CDATA[Golpe <b>perigoso</b> &amp; falso]]></title><link>javascript:alert(1)</link><source>Mal</source></item>
+<item><title>Preço do trigo &#233; destaque</title><link>https://exemplo.com/b</link><source>Agro</source></item>
+</channel></rss>`
+const lidas = lerRss(rss)
+confere('RSS: título sem o nome da fonte repetido', lidas[0]?.titulo === 'Padarias crescem 8%' && lidas[0]?.fonte === 'Jornal do Pão', JSON.stringify(lidas[0]))
+confere('RSS: link javascript: é descartado', lidas.length === 2 && lidas.every((n) => n.link.startsWith('https://')), JSON.stringify(lidas))
+confere('RSS: entidades HTML viram texto', lidas[1]?.titulo === 'Preço do trigo é destaque', lidas[1]?.titulo)
+confere('release: destaques sem marcação Markdown', JSON.stringify(destaquesDaRelease('## Título\n- **Novo** recurso `x`\n- Veja [aqui](https://a.b)\ntexto')) === JSON.stringify(['Novo recurso x', 'Veja aqui']))
+
 // ------------------------------------------------------------------ resultado
 console.log(`\n${'─'.repeat(60)}`)
 console.log(`Resultado: ${passou} passaram, ${falhou} falharam`)
