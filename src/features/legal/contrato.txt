@@ -1,0 +1,129 @@
+CONTRATO DE LICENÇA DE USO E PRESTAÇÃO DE SERVIÇOS DE SOFTWARE — COFFEE BREAK
+
+Versão 2026-11-03
+
+PARTES
+
+CONTRATADA: EVANDRO ODAIR CAGNINI JUNIOR, Microempreendedor Individual (MEI), inscrito no CNPJ sob o nº 63.702.108/0001-46, titular do sistema Coffee Break, com contato pelo e-mail evandroodaircagninijr@gmail.com.
+
+CONTRATANTE: a pessoa física ou jurídica identificada no cadastro do Coffee Break, representada pela pessoa que assina eletronicamente este contrato, que declara ter poderes para contratar em nome da padaria ou do estabelecimento cadastrado.
+
+As partes celebram este contrato, que se rege pelas cláusulas abaixo e pela legislação brasileira.
+
+CLÁUSULA 1 — DO OBJETO
+
+1.1. Este contrato concede à CONTRATANTE uma licença de uso do software Coffee Break, na modalidade de software como serviço (SaaS), acessado pela internet, de forma pessoal, não exclusiva, intransferível e revogável nos termos deste contrato, enquanto ele estiver em vigor.
+
+1.2. A licença não transfere a propriedade do software, do código-fonte, da marca, do visual ou de qualquer parte do Coffee Break, que permanecem de titularidade exclusiva da CONTRATADA (Lei 9.609/1998 e Lei 9.279/1996).
+
+CLÁUSULA 2 — DO QUE É ENTREGUE
+
+2.1. Durante a vigência, a CONTRATADA disponibiliza as funcionalidades existentes no Coffee Break, que, na data desta versão, incluem: ponto de venda (PDV); caixa com abertura, sangria, suprimento e fechamento; estoque e movimentações; produtos, variedades e categorias; produção, fichas técnicas, sugestão de produção e perdas; encomendas com sinal e entrega; promoções automáticas; metas de vendas; análise de vendas; margens e CMV; contas a pagar e a receber; cadastro e acompanhamento da equipe; personalização da padaria, da logo e do comprovante; comprovante de venda sem valor fiscal; guia de uso e vídeos de apresentação.
+
+2.2. As funcionalidades podem ser melhoradas, alteradas ou substituídas ao longo do tempo. A remoção de funcionalidade essencial será comunicada com antecedência razoável, sempre que possível.
+
+2.3. Suporte: dúvidas e problemas são atendidos pelo e-mail da CONTRATADA, em dias úteis e sem prazo garantido de resposta enquanto o serviço for gratuito.
+
+CLÁUSULA 3 — DO QUE NÃO É ENTREGUE
+
+3.1. O Coffee Break NÃO emite documento fiscal de nenhuma espécie (NFC-e, NF-e, NFS-e, SAT, cupom fiscal ou equivalente). O comprovante gerado pelo sistema contém a expressão "Documento sem valor fiscal" e serve apenas como recibo informativo.
+
+3.2. O Coffee Break NÃO presta serviço de contabilidade, consultoria fiscal, tributária, trabalhista, jurídica ou financeira. Relatórios, margens, CMV, metas, sugestões de produção e preços sugeridos são ferramentas de apoio à gestão e não substituem a análise de profissional habilitado.
+
+3.3. O Coffee Break NÃO garante cópia de segurança (backup) dos dados nem disponibilidade ininterrupta, e NÃO se integra, nesta versão, a maquininhas de cartão, TEF, bancos, Pix automático, balanças ou impressoras fiscais.
+
+3.4. A CONTRATADA não garante que o software atenderá a necessidades específicas não descritas na Cláusula 2, nem que estará livre de toda e qualquer falha.
+
+CLÁUSULA 4 — DAS OBRIGAÇÕES DA CONTRATANTE
+
+4.1. Cumprir todas as obrigações fiscais, tributárias, trabalhistas, sanitárias e de proteção ao consumidor do seu negócio, inclusive emitir os documentos fiscais exigidos pela legislação do seu estado e município e as alterações da reforma tributária (IBS e CBS).
+
+4.2. Conferir os valores, preços, estoques e relatórios do sistema e manter os dados cadastrados corretos e atualizados.
+
+4.3. Manter em sigilo as senhas, usar contas individuais para cada pessoa, desativar o acesso de quem deixar a equipe e responder por todos os atos praticados com as contas da sua padaria.
+
+4.4. Cadastrar apenas dados pessoais necessários, com base legal adequada, e informar a sua equipe e os seus clientes sobre o tratamento, na qualidade de controladora (Cláusula 7).
+
+4.5. Não usar o sistema para fins ilícitos, não tentar acessar dados de terceiros, não burlar mecanismos de segurança, não sobrecarregar o serviço e não copiar, revender, sublicenciar, descompilar ou fazer engenharia reversa do software.
+
+4.6. Exportar e guardar, por sua conta, as informações de que precise manter por prazo legal ou por interesse próprio.
+
+CLÁUSULA 5 — DAS OBRIGAÇÕES DA CONTRATADA
+
+5.1. Manter o serviço disponível na medida do razoável, empregando boas práticas de segurança da informação compatíveis com o porte do serviço.
+
+5.2. Tratar os dados da CONTRATANTE apenas para executar este contrato, conforme a Cláusula 7.
+
+5.3. Comunicar à CONTRATANTE, à Autoridade Nacional de Proteção de Dados (ANPD) e aos titulares, nos casos e prazos da lei, incidente de segurança que possa acarretar risco ou dano relevante.
+
+CLÁUSULA 6 — DO PREÇO
+
+6.1. Na data desta versão, o uso do Coffee Break é gratuito.
+
+6.2. Eventual cobrança futura dependerá de comunicação prévia de, no mínimo, 30 (trinta) dias, com informação clara de preço, forma de pagamento e cancelamento, e de nova concordância expressa da CONTRATANTE. Sem essa concordância, nenhuma cobrança será feita.
+
+CLÁUSULA 7 — DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
+
+7.1. Quanto aos dados pessoais que a CONTRATANTE cadastra sobre a sua equipe e os seus clientes, a CONTRATANTE é a CONTROLADORA e a CONTRATADA é a OPERADORA, nos termos da Lei 13.709/2018.
+
+7.2. A OPERADORA tratará esses dados somente conforme as instruções da CONTROLADORA expressas no uso do sistema e neste contrato, guardará sigilo, adotará medidas de segurança, apoiará a CONTROLADORA no atendimento aos titulares e, ao fim do contrato, eliminará os dados, salvo obrigação legal de guarda.
+
+7.3. A CONTROLADORA autoriza o uso dos suboperadores necessários à prestação do serviço, descritos na Política de Privacidade (hospedagem e banco de dados nos Estados Unidos, envio de e-mail e consulta de CEP), e está ciente da transferência internacional decorrente.
+
+7.4. Os demais aspectos do tratamento de dados estão na Política de Privacidade, que integra este contrato.
+
+CLÁUSULA 8 — DA DISPONIBILIDADE E DA LIMITAÇÃO DE RESPONSABILIDADE
+
+8.1. O serviço depende de internet e de provedores de terceiros e pode sofrer interrupções para manutenção, por falhas técnicas, caso fortuito ou força maior.
+
+8.2. A CONTRATADA responde pelos danos que causar por falha na prestação do serviço, nos termos da lei. Ressalvados os casos em que a lei não admite limitação, especialmente nas relações de consumo (Código de Defesa do Consumidor, art. 51), a responsabilidade total da CONTRATADA fica limitada ao valor efetivamente pago pela CONTRATANTE nos 12 (doze) meses anteriores ao fato e não abrange lucros cessantes, perda de chance ou danos indiretos.
+
+8.3. A CONTRATADA não responde por: (a) obrigações fiscais, tributárias, trabalhistas e sanitárias da CONTRATANTE, inclusive a falta de emissão de documentos fiscais; (b) decisões de negócio tomadas com base em relatórios, sugestões ou cálculos do sistema; (c) dados cadastrados de forma errada, incompleta ou ilícita pelos usuários; (d) atos praticados com contas e senhas da CONTRATANTE; (e) falhas de internet, de equipamentos ou de serviços de terceiros fora do controle da CONTRATADA; (f) perda de dados não exportados pela CONTRATANTE, ressalvada culpa da CONTRATADA.
+
+CLÁUSULA 9 — DA CONFIDENCIALIDADE
+
+9.1. As partes manterão sigilo sobre as informações não públicas a que tiverem acesso em razão deste contrato, salvo ordem legal ou judicial.
+
+CLÁUSULA 10 — DA VIGÊNCIA, SUSPENSÃO E RESCISÃO
+
+10.1. Este contrato vigora por prazo indeterminado, a partir da assinatura eletrônica.
+
+10.2. A CONTRATANTE pode encerrar o contrato a qualquer momento, sem multa, comunicando pelo e-mail da CONTRATADA.
+
+10.3. A CONTRATADA pode encerrar o contrato com aviso prévio de 30 (trinta) dias, ou suspender o acesso imediatamente em caso de uso ilícito, violação da Cláusula 4 ou risco à segurança do serviço.
+
+10.4. Encerrado o contrato, os dados serão eliminados em até 30 (trinta) dias, salvo os que a lei obriga a guardar, como os registros de acesso (Lei 12.965/2014, art. 15).
+
+CLÁUSULA 11 — DAS ALTERAÇÕES
+
+11.1. A CONTRATADA pode atualizar este contrato, os Termos de Uso e a Política de Privacidade. Alterações relevantes serão comunicadas no sistema e dependerão de novo aceite para a continuidade do uso.
+
+CLÁUSULA 12 — DA ASSINATURA ELETRÔNICA E DAS COMUNICAÇÕES
+
+12.1. As partes reconhecem como válida a assinatura eletrônica deste contrato, realizada pela digitação do nome completo do representante da CONTRATANTE e pelo aceite no sistema, nos termos do art. 10, § 2º, da Medida Provisória 2.200-2/2001 e da Lei 14.063/2020.
+
+12.2. Ficam registrados, como prova da assinatura: o nome digitado, a conta utilizada, a data e a hora, o endereço IP, o navegador, a versão do contrato e o código de integridade (hash SHA-256) do texto assinado.
+
+12.3. As comunicações entre as partes serão feitas pelo próprio sistema e pelos e-mails cadastrados.
+
+CLÁUSULA 13 — DAS DECLARAÇÕES DA CONTRATANTE
+
+13.1. A CONTRATANTE declara que: (a) leu integralmente este contrato, os Termos de Uso e a Política de Privacidade; (b) teve a oportunidade de esclarecer dúvidas antes de assinar; (c) compreende o que é e o que não é entregue pelo Coffee Break, em especial as Cláusulas 3 e 8; (d) tem poderes para assinar em nome do estabelecimento cadastrado; e (e) assina de forma livre e consciente.
+
+CLÁUSULA 14 — DISPOSIÇÕES GERAIS
+
+14.1. Este contrato, os Termos de Uso e a Política de Privacidade formam o acordo integral entre as partes. Em caso de conflito, prevalece este contrato.
+
+14.2. Se alguma cláusula for considerada inválida, as demais continuam válidas.
+
+14.3. A tolerância de uma parte quanto ao descumprimento da outra não significa renúncia de direitos.
+
+14.4. A CONTRATANTE não pode ceder este contrato sem concordância da CONTRATADA.
+
+CLÁUSULA 15 — DA LEI APLICÁVEL E DO FORO
+
+15.1. Este contrato é regido pelas leis da República Federativa do Brasil.
+
+15.2. Quando a CONTRATANTE for consumidora, o foro é o do seu domicílio. Nos demais casos, as partes elegem o foro do domicílio da CONTRATADA, com renúncia a qualquer outro, por mais privilegiado que seja.
+
+E, por estarem de acordo, a CONTRATANTE assina eletronicamente este contrato.

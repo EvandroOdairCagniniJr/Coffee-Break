@@ -9,6 +9,7 @@ import { paginas } from '@/app/paginas'
 const LoginPage = lazy(paginas.login)
 const TermosPage = lazy(paginas.termos)
 const PrivacidadePage = lazy(paginas.privacidade)
+const ContratoPage = lazy(paginas.contrato)
 const DashboardPage = lazy(paginas.dashboard)
 const ProdutosPage = lazy(paginas.produtos)
 const EstoquePage = lazy(paginas.estoque)
@@ -51,6 +52,14 @@ export function AppRouter() {
           element={
             <Suspense fallback={carregando}>
               <TermosPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contrato"
+          element={
+            <Suspense fallback={carregando}>
+              <ContratoPage />
             </Suspense>
           }
         />

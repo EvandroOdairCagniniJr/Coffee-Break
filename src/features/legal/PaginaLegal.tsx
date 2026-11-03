@@ -42,6 +42,9 @@ export function PaginaLegal({ titulo, children }: { titulo: string; children: Re
             <Link to="/privacidade" className="underline underline-offset-2 hover:text-foreground">
               Política de Privacidade
             </Link>
+            <Link to="/contrato" className="underline underline-offset-2 hover:text-foreground">
+              Contrato
+            </Link>
           </p>
         </footer>
       </article>
@@ -68,6 +71,10 @@ export function LinksLegais({ className }: { className?: string }) {
       {' · '}
       <Link to="/privacidade" target="_blank" className="underline underline-offset-2 hover:text-foreground">
         Política de Privacidade
+      </Link>
+      {' · '}
+      <Link to="/contrato" target="_blank" className="underline underline-offset-2 hover:text-foreground">
+        Contrato
       </Link>
     </p>
   )

@@ -53,6 +53,23 @@ create index if not exists usuarios_padaria_idx on usuarios (padaria_id);
 -- Aceite dos Termos de Uso e da Política de Privacidade (LGPD): versão aceita e quando.
 alter table usuarios add column if not exists termos_versao varchar(20);
 alter table usuarios add column if not exists termos_aceitos_em timestamptz;
+
+-- Assinatura eletrônica do contrato pelo dono (MP 2.200-2/2001, art. 10, §2º; Lei 14.063/2020):
+-- nome digitado, conta, data e hora, IP, navegador, versão e hash SHA-256 do texto assinado.
+-- Nunca é apagada nem alterada pelo sistema (é a prova do que foi combinado).
+create table if not exists assinaturas_contrato (
+  id text primary key,
+  padaria_id text not null references padarias (id),
+  usuario_id text not null references usuarios (id),
+  versao varchar(20) not null,
+  nome_assinado varchar(255) not null,
+  hash_contrato char(64) not null,
+  ip varchar(64),
+  navegador varchar(255),
+  assinado_em timestamptz not null default now()
+);
+create index if not exists assinaturas_contrato_padaria_idx on assinaturas_contrato (padaria_id, assinado_em);
+create index if not exists assinaturas_contrato_usuario_idx on assinaturas_contrato (usuario_id);
 create index if not exists usuarios_cpf_idx on usuarios (cpf) where cpf is not null;
 
 create table if not exists produtos (

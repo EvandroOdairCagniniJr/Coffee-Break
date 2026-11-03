@@ -3,6 +3,7 @@
 export const paginas = {
   login: () => import('@/features/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
   termos: () => import('@/features/legal/TermosPage').then((m) => ({ default: m.TermosPage })),
+  contrato: () => import('@/features/legal/ContratoPage').then((m) => ({ default: m.ContratoPage })),
   privacidade: () =>
     import('@/features/legal/PrivacidadePage').then((m) => ({ default: m.PrivacidadePage })),
   dashboard: () =>
