@@ -12,7 +12,7 @@ import type { Usuario } from './auth.ts'
 import { esquecerUsuario } from './cacheUsuarios.ts'
 import { HttpError, validar } from './http.ts'
 
-export const VERSAO_TERMOS = '2026-11-03.3'
+export const VERSAO_TERMOS = '2026-11-03.4'
 
 // Contrato de licença e prestação de serviços: o mesmo arquivo que o site mostra
 // (src/features/legal/contrato.txt). O hash SHA-256 do texto vai junto com cada assinatura,
@@ -130,7 +130,8 @@ legalRouter.get('/termos', async (_req, res) => {
     versao_atual: VERSAO_TERMOS,
     versao_aceita: rows[0]?.termos_versao ?? null,
     aceito_em: rows[0]?.termos_aceitos_em ?? null,
-    pendente: rows[0]?.termos_versao !== VERSAO_TERMOS,
+    // Quem administra a plataforma é o fornecedor do serviço: não aceita os termos de cliente.
+    pendente: !u.plataforma_admin && rows[0]?.termos_versao !== VERSAO_TERMOS,
   })
 })
 
@@ -157,7 +158,7 @@ legalRouter.get('/contrato', async (_req, res) => {
   res.json({
     versao: VERSAO_CONTRATO,
     hash: HASH_CONTRATO,
-    pendente: u.papel === 'dono' && !rows[0],
+    pendente: u.papel === 'dono' && !u.plataforma_admin && !rows[0],
     assinatura: rows[0] ?? null,
   })
 })
@@ -226,7 +227,7 @@ legalRouter.post('/contrato', async (req, res) => {
 // arquivo para baixar. Não inclui a senha (só existe o hash, que não serve a ninguém).
 legalRouter.get('/meus-dados', async (_req, res) => {
   const u = res.locals.usuario as Usuario
-  const [[pessoa], [acessos], [historico], [resumo], [assinaturas], [aceites]] = await Promise.all([
+  const [[pessoa], [acessos], [historico], [resumo], [assinaturas], [aceites], [administracao]] = await Promise.all([
     pool.query<RowDataPacket[]>(
       `select u.nome, u.email, u.papel, u.cargo, u.foto, u.telefone, u.cpf, u.data_nascimento,
               u.data_admissao, u.turno, u.endereco, u.contato_emergencia, u.ativo, u.created_at,
@@ -261,6 +262,12 @@ legalRouter.get('/meus-dados', async (_req, res) => {
        from aceites_termos where usuario_id = ? order by aceito_em desc`,
       [u.id],
     ),
+    // Transparência: o que a administração do Coffee Break fez sobre a própria pessoa.
+    pool.query<RowDataPacket[]>(
+      `select acao, motivo, created_at from plataforma_acoes
+       where alvo_usuario_id = ? order by created_at desc`,
+      [u.id],
+    ),
   ])
   const arquivo = {
     sobre: 'Seus dados pessoais no Coffee Break (LGPD, art. 18). Vendas e demais registros da padaria pertencem à padaria e aparecem aqui só como totais.',
@@ -271,6 +278,7 @@ legalRouter.get('/meus-dados', async (_req, res) => {
     atividade_na_padaria: resumo[0] ?? null,
     contratos_assinados: assinaturas,
     aceites_dos_termos: aceites,
+    acoes_da_administracao_sobre_voce: administracao,
   }
   res.setHeader('Content-Disposition', 'attachment; filename="meus-dados-coffee-break.json"')
   res.json(arquivo)

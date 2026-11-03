@@ -112,6 +112,9 @@ alter table padarias add column if not exists status varchar(20) not null defaul
 alter table padarias add column if not exists status_motivo text;
 alter table padarias add column if not exists status_em timestamptz;
 create index if not exists padarias_status_idx on padarias (status, created_at);
+-- Padaria escondida da administração (ex.: a que foi criada só para abrir a conta do
+-- administrador, antes de a conta ficar sem padaria). Não entra em listas nem em números.
+alter table padarias add column if not exists oculta boolean not null default false;
 
 -- Administração da plataforma: só quem tem esta marca (dada pelo script
 -- scripts/plataforma-admin.ts, direto no banco). Nunca aparece para dono nem para a equipe.

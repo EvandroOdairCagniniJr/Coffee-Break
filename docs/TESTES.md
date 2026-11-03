@@ -4,9 +4,9 @@ Dois testes automáticos, que rodam isolados: banco temporário em memória, ser
 
 | Comando | O que testa | Verificações |
 |---|---|---|
-| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 156 |
+| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 168 |
 | `npm run teste:seguranca` | Ataques: login forjado, isolamento entre padarias, papéis, SQL injection, CSRF, vazamentos e força bruta | 45 |
-| `npm run teste` | Os dois, em sequência | 201 |
+| `npm run teste` | Os dois, em sequência | 213 |
 
 Rode `npm run teste` antes de todo push (veja [DEPLOY.md](DEPLOY.md)).
 
@@ -34,6 +34,7 @@ Padaria fictícia: dona (dono), Caio (funcionário) e os produtos Pão francês 
 | 16 | Central de dúvidas | Notícias e novidades exigem login e respondem com lista (vazia se a internet falhar) · RSS: fonte separada do título, link `javascript:` descartado, entidades HTML viram texto · destaques da release sem Markdown |
 | 17 | Liberação pela administração | Padaria nova nasce em análise e não usa o sistema · dono não sabe que existe administração · documento PDF aceito, arquivo disfarçado e acima de 3 MB recusados · não administrador recebe 404 · fila, detalhe e download do documento (anexo, tipo conferido) · recusar exige motivo · nova análise · transição inválida barrada · liberar, suspender e reativar valem na hora · histórico imutável |
 | 18 | Central de administração | Um único administrador (o banco recusa o segundo) · visão geral com 30 dias e alertas · busca rápida · pessoas de todas as padarias · bloquear derruba o login e a sessão aberta · não bloqueia a própria conta · anotações internas que o dono não vê · encerrar sessões da padaria · atividade e decisões · comunicados por público, encerrados somem · planilha CSV neutraliza fórmula escondida |
+| 19 | Administração sem padaria e privacidade | O script deixa a conta só de administração e oculta a padaria usada para abrir a conta · recusa um segundo administrador · sem padaria, as telas de padaria fecham · não assina contrato nem aceita termos de cliente · CPF e telefone mascarados, sem nascimento nem endereço · dado completo só com motivo · a pessoa vê as ações da administração sobre ela · baixar documento fica registrado |
 
 ## Quando um teste falhar
 

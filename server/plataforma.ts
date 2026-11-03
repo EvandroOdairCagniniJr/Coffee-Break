@@ -30,7 +30,21 @@ async function exigirAdministracao(_req: Request, res: Response, next: NextFunct
 plataformaRouter.use(exigirAdministracao)
 
 const STATUS: StatusPadaria[] = ['pendente', 'aprovada', 'recusada', 'suspensa']
+
+// Só o necessário (LGPD, art. 6º, III): a administração vê CPF e telefone mascarados.
+export function mascararCpf(cpf: unknown) {
+  const d = String(cpf ?? '').replace(/\D/g, '')
+  return d.length === 11 ? `***.${d.slice(3, 6)}.${d.slice(6, 9)}-**` : d ? '***' : null
+}
+export function mascararTelefone(tel: unknown) {
+  const d = String(tel ?? '').replace(/\D/g, '')
+  return d.length >= 8 ? `(**) ****-${d.slice(-4)}` : d ? '****' : null
+}
 const FUSO = 'America/Sao_Paulo'
+// Só as padarias que aparecem para a administração (não as ocultas, como a que foi criada só
+// para abrir a conta do administrador).
+const VISIVEL = 'padaria_id not in (select id from padarias where oculta)'
+const VISIVEL_V = 'v.padaria_id not in (select id from padarias where oculta)'
 
 // Toda decisão da administração fica registrada (plataforma_acoes é imutável).
 async function registrarAcao(
@@ -67,16 +81,18 @@ async function registrarAcao(
 // ------------------------------------------------------------------ visão geral
 
 plataformaRouter.get('/resumo', async (_req, res) => {
-  const [porStatus] = await pool.query<RowDataPacket[]>('select status, count(*)::int as n from padarias group by status')
+  const [porStatus] = await pool.query<RowDataPacket[]>('select status, count(*)::int as n from padarias where not oculta group by status')
   const [[totais]] = await pool.query<RowDataPacket[]>(
     `select (select count(*)::int from usuarios where ativo = true) as usuarios_ativos,
             (select count(*)::int from usuarios where ultimo_acesso > now() - interval '1 day') as pessoas_hoje,
-            (select count(*)::int from vendas where created_at > now() - interval '30 days' and status <> 'devolvida') as vendas_30_dias,
+            (select count(*)::int from vendas where created_at > now() - interval '30 days' and status <> 'devolvida'
+               and ${VISIVEL}) as vendas_30_dias,
             (select coalesce(sum(total), 0)::float from vendas
-              where created_at > now() - interval '30 days' and status <> 'devolvida') as faturamento_30_dias,
-            (select count(distinct padaria_id)::int from vendas where created_at > now() - interval '1 day') as padarias_vendendo_hoje,
-            (select count(*)::int from padarias where created_at > now() - interval '7 days') as novas_7_dias,
-            (select count(*)::int from padarias where created_at > now() - interval '30 days') as novas_30_dias,
+              where created_at > now() - interval '30 days' and status <> 'devolvida' and ${VISIVEL}) as faturamento_30_dias,
+            (select count(distinct padaria_id)::int from vendas
+              where created_at > now() - interval '1 day' and ${VISIVEL}) as padarias_vendendo_hoje,
+            (select count(*)::int from padarias where created_at > now() - interval '7 days' and not oculta) as novas_7_dias,
+            (select count(*)::int from padarias where created_at > now() - interval '30 days' and not oculta) as novas_30_dias,
             (select count(*)::int from log_acessos where evento in ('login_falhou', 'conta_bloqueada')
                and created_at > now() - interval '1 day') as alertas_24h`,
   )
@@ -86,16 +102,18 @@ plataformaRouter.get('/resumo', async (_req, res) => {
        select generate_series((now() at time zone '${FUSO}')::date - 29, (now() at time zone '${FUSO}')::date, interval '1 day')::date as dia
      )
      select to_char(d.dia, 'YYYY-MM-DD') as dia,
-            (select count(*)::int from padarias p where (p.created_at at time zone '${FUSO}')::date = d.dia) as cadastros,
-            (select count(*)::int from vendas v where (v.created_at at time zone '${FUSO}')::date = d.dia and v.status <> 'devolvida') as vendas,
+            (select count(*)::int from padarias p
+              where (p.created_at at time zone '${FUSO}')::date = d.dia and not p.oculta) as cadastros,
+            (select count(*)::int from vendas v
+              where (v.created_at at time zone '${FUSO}')::date = d.dia and v.status <> 'devolvida' and ${VISIVEL_V}) as vendas,
             (select coalesce(sum(v.total), 0)::float from vendas v
-              where (v.created_at at time zone '${FUSO}')::date = d.dia and v.status <> 'devolvida') as faturamento
+              where (v.created_at at time zone '${FUSO}')::date = d.dia and v.status <> 'devolvida' and ${VISIVEL_V}) as faturamento
      from dias d order by d.dia`,
   )
   const [fila] = await pool.query<RowDataPacket[]>(
     `select p.id, p.status, p.created_at, p.dados->>'nome_fantasia' as nome_fantasia,
             (select count(*)::int from padaria_documentos x where x.padaria_id = p.id) as documentos
-     from padarias p where p.status = 'pendente' order by p.created_at limit 6`,
+     from padarias p where p.status = 'pendente' and not p.oculta order by p.created_at limit 6`,
   )
   const contagem = Object.fromEntries(STATUS.map((s) => [s, 0])) as Record<StatusPadaria, number>
   for (const r of porStatus) contagem[r.status as StatusPadaria] = r.n
@@ -108,7 +126,7 @@ plataformaRouter.get('/busca', async (req, res) => {
   const termo = `%${q.toLowerCase()}%`
   const [padarias] = await pool.query<RowDataPacket[]>(
     `select id, status, dados->>'nome_fantasia' as nome, dados->>'cnpj' as cnpj from padarias
-     where lower(coalesce(dados->>'nome_fantasia', '') || ' ' || coalesce(dados->>'razao_social', '') || ' ' || coalesce(dados->>'cnpj', '')) like ?
+     where not oculta and lower(coalesce(dados->>'nome_fantasia', '') || ' ' || coalesce(dados->>'razao_social', '') || ' ' || coalesce(dados->>'cnpj', '')) like ?
      order by created_at desc limit 6`,
     [termo],
   )
@@ -155,7 +173,7 @@ plataformaRouter.get('/padarias', async (req, res) => {
      left join lateral (
        select nome, email from usuarios where padaria_id = p.id and papel = 'dono' order by created_at limit 1
      ) d on true
-     where (?::text is null or p.status = ?)
+     where not p.oculta and (?::text is null or p.status = ?)
        and (?::text is null or lower(coalesce(p.dados->>'nome_fantasia', '') || ' ' || coalesce(p.dados->>'razao_social', '')
             || ' ' || coalesce(p.dados->>'cnpj', '') || ' ' || coalesce(d.email, '') || ' ' || coalesce(d.nome, '')) like ?)
      order by case p.status when 'pendente' then 0 when 'recusada' then 1 when 'suspensa' then 2 else 3 end,
@@ -198,7 +216,9 @@ plataformaRouter.get('/padarias/:id', async (req, res) => {
   if (!padaria) throw new HttpError(404, 'Padaria não encontrada')
   const [[pessoas], [documentos], [assinaturas], [aceites], [historico], [notas], [acessos], [[numeros]]] = await Promise.all([
     pool.query<RowDataPacket[]>(
-      `select id, nome, email, papel, cargo, ativo, telefone, cpf, data_nascimento, endereco,
+      // Minimização (LGPD, art. 6º, III): sem data de nascimento nem endereço; CPF e telefone saem
+      // mascarados. O dado completo só com motivo registrado (POST /pessoas/:id/dados-completos).
+      `select id, nome, email, papel, cargo, ativo, telefone, cpf,
               created_at, ultimo_acesso, termos_versao, termos_aceitos_em
        from usuarios where padaria_id = ?
        order by case papel when 'dono' then 0 when 'admin' then 1 else 2 end, created_at`,
@@ -248,15 +268,18 @@ plataformaRouter.get('/padarias/:id', async (req, res) => {
       [id, id, id, id, id, id],
     ),
   ])
-  res.json({ ...padaria, pessoas, documentos, assinaturas, aceites, historico, notas, acessos, numeros })
+  const pessoasMascaradas = pessoas.map((p) => ({ ...p, cpf: mascararCpf(p.cpf), telefone: mascararTelefone(p.telefone) }))
+  res.json({ ...padaria, pessoas: pessoasMascaradas, documentos, assinaturas, aceites, historico, notas, acessos, numeros })
 })
 
 plataformaRouter.get('/padarias/:id/documentos/:doc', async (req, res) => {
   const [[doc]] = await pool.query<RowDataPacket[]>(
-    'select nome_arquivo, tipo, conteudo from padaria_documentos where id = ? and padaria_id = ?',
+    'select nome_arquivo, descricao, tipo, conteudo from padaria_documentos where id = ? and padaria_id = ?',
     [req.params.doc, req.params.id],
   )
   if (!doc) throw new HttpError(404, 'Documento não encontrado')
+  // Quem abriu cada documento fica registrado (LGPD, art. 37).
+  await registrarAcao(pool, req, { acao: 'baixar_documento', padariaId: req.params.id, motivo: String(doc.descricao) })
   // Sempre como download e com o tipo conferido no envio: o navegador não executa nada.
   res.setHeader('Content-Type', doc.tipo)
   res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -354,6 +377,22 @@ plataformaRouter.get('/pessoas', async (req, res) => {
     [termo, termo, situacao, situacao, situacao],
   )
   res.json(pessoas)
+})
+
+// Dado completo de uma pessoa (CPF, telefone, nascimento, endereço): só com um motivo, que fica
+// registrado no histórico e aparece para a própria pessoa em "Baixar meus dados".
+plataformaRouter.post('/pessoas/:id/dados-completos', async (req, res) => {
+  const { motivo } = validar(
+    z.object({ motivo: z.string().trim().min(10, 'Diga por que precisa ver os dados completos (pelo menos 10 letras)').max(300) }),
+    req.body,
+  )
+  const [[p]] = await pool.query<RowDataPacket[]>(
+    'select id, padaria_id, nome, cpf, telefone, data_nascimento, endereco from usuarios where id = ?',
+    [req.params.id],
+  )
+  if (!p) throw new HttpError(404, 'Pessoa não encontrada')
+  await registrarAcao(pool, req, { acao: 'ver_dados_pessoais', padariaId: p.padaria_id, alvoUsuarioId: p.id, motivo })
+  res.json({ cpf: p.cpf, telefone: p.telefone, data_nascimento: p.data_nascimento, endereco: p.endereco })
 })
 
 async function pessoaAlvo(req: Request) {

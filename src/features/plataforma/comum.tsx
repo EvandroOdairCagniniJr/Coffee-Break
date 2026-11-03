@@ -60,6 +60,8 @@ export const ROTULO_ACAO: Record<string, string> = {
   bloquear_pessoa: 'Bloqueou o acesso de uma pessoa',
   reativar_pessoa: 'Liberou o acesso de uma pessoa',
   encerrar_sessoes: 'Encerrou sessões',
+  ver_dados_pessoais: 'Viu os dados pessoais completos',
+  baixar_documento: 'Baixou um documento',
   publicar_comunicado: 'Publicou um comunicado',
   encerrar_comunicado: 'Encerrou um comunicado',
   republicar_comunicado: 'Republicou um comunicado',

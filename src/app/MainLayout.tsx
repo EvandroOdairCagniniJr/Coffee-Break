@@ -28,6 +28,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { BoasVindas } from '@/app/BoasVindas'
+import { LayoutAdministracao } from '@/app/LayoutAdministracao'
 import { PortaoContrato } from '@/features/legal/PortaoContrato'
 import { TelaLiberacao } from '@/features/liberacao/TelaLiberacao'
 import { FaixaComunicados } from '@/features/plataforma/FaixaComunicados'
@@ -142,6 +143,8 @@ function Logo({ assinatura = true }: { assinatura?: boolean }) {
 // contrato (dono) e a tela de liberação. Nada do menu nem das telas carrega antes disso.
 export function MainLayout() {
   const { user } = useAuth()
+  // Conta só de administração (sem padaria): a central de comando, sem nenhuma tela de padaria.
+  if (user?.plataforma && !user.padaria_id) return <LayoutAdministracao />
   const liberada = !user || user.plataforma || !user.padaria_status || user.padaria_status === 'aprovada'
   if (!liberada) {
     return (

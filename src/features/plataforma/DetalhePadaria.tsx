@@ -308,7 +308,10 @@ function AbaResumo({ d, aoMudar }: { d: Detalhe; aoMudar: () => void }) {
       </Bloco>
 
       <Bloco titulo="Anotações internas">
-        <p className="text-xs text-muted-foreground">Só você vê. Use para lembrar conversas, combinados e pendências.</p>
+        <p className="text-xs text-muted-foreground">
+          Só você vê. Anote só o necessário sobre a padaria (combinados e pendências), sem dados pessoais
+          sensíveis: as pessoas podem pedir acesso ao que é guardado sobre elas (LGPD, art. 18).
+        </p>
         <form
           className="flex gap-2"
           onSubmit={(e) => {
@@ -352,6 +355,62 @@ function Numero({ rotulo, valor }: { rotulo: string; valor: ReactNode }) {
   )
 }
 
+interface DadosCompletos {
+  cpf: string | null
+  telefone: string | null
+  data_nascimento: string | null
+  endereco: Parameters<typeof enderecoEmLinha>[0] | null
+}
+
+// Dado pessoal completo: só com motivo, que fica no histórico e a própria pessoa vê.
+function VerDadosCompletos({ pessoa }: { pessoa: Pessoa }) {
+  const [aberto, setAberto] = useState(false)
+  const [motivo, setMotivo] = useState('')
+  const ver = useMutation({
+    mutationFn: () => api.post<DadosCompletos>(`/plataforma/pessoas/${pessoa.id}/dados-completos`, { motivo: motivo.trim() }),
+    onError: (e) => toast.error(mensagemErro(e, 'Não deu para abrir os dados')),
+  })
+  if (ver.data) {
+    const x = ver.data
+    return (
+      <div className="mt-2 rounded-lg border border-amber-300/70 bg-amber-50 p-3 text-xs text-amber-950 dark:bg-amber-950/30 dark:text-amber-100">
+        <p>CPF: {x.cpf ? mascaraCPF(x.cpf) : '—'} · Telefone: {x.telefone ? mascaraTelefone(x.telefone) : '—'}</p>
+        <p>Nascimento: {data(x.data_nascimento)} · Endereço: {enderecoEmLinha(x.endereco) || '—'}</p>
+        <p className="mt-1 opacity-75">Consulta registrada no histórico, com o motivo.</p>
+      </div>
+    )
+  }
+  if (!aberto) {
+    return (
+      <button type="button" onClick={() => setAberto(true)} className="text-xs text-primary hover:underline">
+        Ver dados completos
+      </button>
+    )
+  }
+  return (
+    <form
+      className="mt-2 flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        ver.mutate()
+      }}
+    >
+      <input
+        autoFocus
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        maxLength={300}
+        placeholder="Motivo: ex. conferir com o documento enviado"
+        aria-label={`Motivo para ver os dados de ${pessoa.nome}`}
+        className="h-8 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+      <Button type="submit" size="sm" disabled={motivo.trim().length < 10 || ver.isPending}>
+        Ver
+      </Button>
+    </form>
+  )
+}
+
 function AbaPessoas({ d, aoMudar }: { d: Detalhe; aoMudar: () => void }) {
   const acesso = useMutation({
     mutationFn: (p: Pessoa) => api.post(`/plataforma/pessoas/${p.id}/acesso`, { ativo: !p.ativo }),
@@ -380,13 +439,14 @@ function AbaPessoas({ d, aoMudar }: { d: Detalhe; aoMudar: () => void }) {
               <td className="py-2 pr-3">
                 <span className="block font-medium">{p.nome}</span>
                 <span className="block text-xs text-muted-foreground">{p.email}</span>
+                <VerDadosCompletos pessoa={p} />
               </td>
               <td className="py-2 pr-3">
                 {ROTULO_PAPEL[p.papel] ?? p.papel}
                 {!p.ativo && <span className="ml-1 text-xs text-destructive">(sem acesso)</span>}
               </td>
-              <td className="py-2 pr-3">{p.cpf ? mascaraCPF(p.cpf) : '—'}</td>
-              <td className="py-2 pr-3">{p.telefone ? mascaraTelefone(p.telefone) : '—'}</td>
+              <td className="py-2 pr-3 font-mono text-xs">{p.cpf ?? '—'}</td>
+              <td className="py-2 pr-3 font-mono text-xs">{p.telefone ?? '—'}</td>
               <td className="py-2 pr-3">{dataHora(p.ultimo_acesso)}</td>
               <td className="py-2 text-right">
                 <Button variant="outline" size="sm" onClick={() => acesso.mutate(p)} disabled={acesso.isPending}>

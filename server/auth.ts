@@ -509,6 +509,11 @@ export async function exigirLogin(req: Request, res: Response, next: NextFunctio
 // funcionam. A administração da plataforma passa sempre.
 export function exigirPadariaLiberada(_req: Request, res: Response, next: NextFunction) {
   const u = res.locals.usuario as Usuario
+  // Conta só de administração (sem padaria): não usa as telas de padaria.
+  if (!u.padaria_id) {
+    res.status(403).json({ message: 'Esta conta é da administração da plataforma.', codigo: 'sem_padaria' })
+    return
+  }
   if (u.plataforma_admin || u.padaria_status === 'aprovada') {
     next()
     return

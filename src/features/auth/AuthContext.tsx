@@ -5,7 +5,8 @@ import type { Papel } from '@/types/database'
 
 export interface Usuario {
   id: string
-  padaria_id: string
+  // Vazio na conta só de administração da plataforma (sem padaria).
+  padaria_id: string | null
   nome: string
   email: string
   papel: Papel

@@ -144,6 +144,33 @@ export function PrivacidadePage() {
           <li>Testes automáticos de segurança a cada mudança no sistema.</li>
         </ul>
         <p>
+          <strong>O que a administração do Coffee Break pode e não pode ver.</strong> A administração é
+          feita só pelo responsável pelo sistema, numa conta própria, e serve para liberar padarias,
+          dar suporte, manter a segurança e evitar fraude.
+        </p>
+        <ul>
+          <li>
+            Vê o cadastro da padaria, o nome, o e-mail e o papel de cada pessoa, os documentos enviados
+            para a liberação, os registros de acesso e apenas os totais de uso (quantidade de vendas e
+            faturamento), nunca o que foi vendido a cada cliente.
+          </li>
+          <li>
+            CPF e telefone aparecem mascarados. Ver o dado completo exige informar um motivo, e essa
+            consulta fica registrada.
+          </li>
+          <li>
+            Não vê senhas, não entra na conta de ninguém e não altera os dados que a padaria cadastra.
+          </li>
+          <li>
+            Pode bloquear o acesso de uma pessoa ou suspender uma padaria em caso de risco, fraude ou
+            descumprimento dos Termos, sempre com o motivo registrado.
+          </li>
+          <li>
+            Toda ação da administração fica num histórico que não pode ser apagado, e o que foi feito
+            sobre você aparece em "Baixar meus dados".
+          </li>
+        </ul>
+        <p>
           Se acontecer um incidente de segurança que possa trazer risco ou dano relevante, avisaremos
           a Autoridade Nacional de Proteção de Dados (ANPD) e as pessoas afetadas, nos prazos da lei.
         </p>

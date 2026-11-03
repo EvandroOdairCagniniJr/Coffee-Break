@@ -110,13 +110,13 @@ export function CerimoniaContrato({ onConcluir }: { onConcluir: () => void }) {
                 id="contrato-nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                placeholder={user?.nome}
+                placeholder="Digite seu nome completo aqui"
                 autoComplete="name"
-                className="font-[Great_Vibes,cursive] text-2xl"
+                className="font-[Great_Vibes,cursive] text-2xl placeholder:font-sans placeholder:text-base"
                 style={{ fontFamily: "'Great Vibes', cursive" }}
               />
               <p className="text-xs text-muted-foreground">
-                Digite exatamente o nome da sua conta: <strong>{user?.nome}</strong>
+                Use o mesmo nome completo que você informou no cadastro.
               </p>
             </div>
             <label htmlFor="contrato-aceite" className="flex cursor-pointer items-start gap-2.5 text-sm leading-snug">

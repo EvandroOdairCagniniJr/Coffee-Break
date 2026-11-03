@@ -113,7 +113,7 @@ A lista completa, rota por rota, está em [API.md](API.md).
 |---|---|
 | `npm run dev` + `npm run dev:server` | Rodar no computador (site + API) |
 | `npm run banco:local` | Banco PostgreSQL local para testes (sem Supabase) |
-| `npm run teste` | Os 201 testes: funcional (156) + segurança (45). Veja [TESTES.md](TESTES.md) |
+| `npm run teste` | Os 213 testes: funcional (168) + segurança (45). Veja [TESTES.md](TESTES.md) |
 | `npm run teste:funcional` | Só os cenários do dia a dia (venda, caixa, estoque, encomenda...) |
 | `npm run teste:seguranca` | Só o teste de segurança |
 | `npm run docs` | Regenerar `docs/API.md` e `docs/BANCO.md` |

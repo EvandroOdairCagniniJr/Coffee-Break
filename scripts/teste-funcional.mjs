@@ -449,7 +449,7 @@ r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'r
 r = await api(nina, 'GET', '/produtos')
 confere('reativada, volta a funcionar', r.status === 200, `status ${r.status}`)
 r = await api(adm, 'GET', `/plataforma/padarias/${nova?.id}`)
-confere('cada decisão fica no histórico, com o motivo', r.json?.historico?.length === 4 && r.json.historico.some((h) => h.acao === 'recusar' && h.motivo), JSON.stringify(r.json?.historico?.map((h) => h.acao)))
+confere('cada decisão fica no histórico, com o motivo', r.json?.historico?.length === 5 && r.json.historico.some((h) => h.acao === 'recusar' && h.motivo), JSON.stringify(r.json?.historico?.map((h) => h.acao)))
 confere('o histórico da administração não pode ser apagado', await db.query('delete from padaria.plataforma_acoes').then(() => false, (e) => /Registro legal/.test(e.message)))
 cenario('18. Central de administração: pessoas, atividade, comunicados e controle')
 confere(
@@ -506,6 +506,55 @@ confere('a planilha sai em CSV, com acento e cabeçalho', planilha.status === 20
 confere('a planilha neutraliza fórmula escondida no cadastro', csv.includes(`"'=HYPERLINK(1)"`) && !csv.includes(`;"=HYPERLINK`))
 
 await db.query(`update padaria.usuarios set plataforma_admin = false where email = 'rosa.${id}@teste.local'`)
+
+cenario('19. Conta só de administração e limites de privacidade da administração')
+const emailAdm = `evandro.${id}@teste.local`
+await api(null, 'POST', '/auth/setup', { nome: 'Administrador Teste', email: emailAdm, senha: SENHA, aceite_termos: true, padaria: { nome_fantasia: 'Padaria Central' } })
+// Assíncrono: o banco de teste roda neste mesmo processo e precisa continuar respondendo.
+const rodarScript = (...args) =>
+  new Promise((resolve) => {
+    const p = spawn(process.execPath, ['scripts/plataforma-admin.ts', ...args], {
+      env: { ...process.env, DATABASE_URL: `postgres://postgres@127.0.0.1:${PORTA_BANCO}/postgres`, DATABASE_SSL: 'false', DATABASE_POOL: '1' },
+    })
+    let stdout = ''
+    let stderr = ''
+    p.stdout.on('data', (d) => (stdout += d))
+    p.stderr.on('data', (d) => (stderr += d))
+    p.on('close', (status) => resolve({ status, stdout, stderr }))
+  })
+let saida = await rodarScript(emailAdm)
+confere('o script dá a administração e deixa a conta sem padaria', saida.status === 0 && /agora administra/.test(saida.stdout) && /Padaria Central.*oculta/.test(saida.stdout), (saida.stdout + saida.stderr).split('\n').filter((l) => /Error|error|code/.test(l)).slice(0, 6).join(' / '))
+saida = await rodarScript(`nina.${id}@teste.local`)
+confere('o script recusa um segundo administrador', saida.status === 3 && /Já existe um administrador/.test(saida.stderr), saida.stderr)
+r = await api(null, 'POST', '/auth/login', { email: emailAdm, senha: SENHA })
+const soAdm = r.cookie
+confere('a conta entra como administração, sem padaria', r.json?.plataforma === true && r.json?.padaria_id === null, JSON.stringify(r.json))
+r = await api(soAdm, 'GET', '/produtos')
+confere('sem padaria, as telas de padaria ficam fechadas', r.status === 403 && r.json?.codigo === 'sem_padaria', `status ${r.status}`)
+r = await api(soAdm, 'GET', '/legal/contrato')
+const r2 = await api(soAdm, 'GET', '/legal/termos')
+confere('a administração não assina contrato nem aceita termos de cliente', r.json?.pendente === false && r2.json?.pendente === false, `${JSON.stringify(r.json)} ${JSON.stringify(r2.json)}`)
+r = await api(soAdm, 'GET', '/plataforma/busca?q=central')
+confere('a padaria usada só para abrir a conta some da administração', r.status === 200 && r.json?.padarias?.length === 0, JSON.stringify(r.json))
+
+await db.query(`update padaria.usuarios set cpf = '52998224725', telefone = '11987654321' where email = 'caio.${id}@teste.local'`)
+r = await api(soAdm, 'GET', '/plataforma/padarias?busca=Padaria%20Teste')
+const idTeste = r.json?.find?.((p) => p.nome_fantasia === 'Padaria Teste')?.id
+r = await api(soAdm, 'GET', `/plataforma/padarias/${idTeste}`)
+const caioFicha = r.json?.pessoas?.find?.((p) => p.email === `caio.${id}@teste.local`)
+confere('na ficha, CPF e telefone aparecem mascarados', caioFicha?.cpf === '***.982.247-**' && caioFicha?.telefone === '(**) ****-4321', JSON.stringify(caioFicha))
+confere('a ficha não traz nascimento nem endereço da equipe', caioFicha && !('data_nascimento' in caioFicha) && !('endereco' in caioFicha))
+r = await api(soAdm, 'POST', `/plataforma/pessoas/${caioFicha?.id}/dados-completos`, {})
+confere('ver o dado completo sem motivo é barrado', r.status === 400, `status ${r.status}`)
+r = await api(soAdm, 'POST', `/plataforma/pessoas/${caioFicha?.id}/dados-completos`, { motivo: 'Conferir com o documento enviado pela padaria' })
+confere('com motivo, o dado completo aparece', r.status === 200 && r.json?.cpf === '52998224725', JSON.stringify(r.json))
+r = await api(func, 'GET', '/legal/meus-dados')
+const sobreCaio = r.json?.acoes_da_administracao_sobre_voce ?? []
+confere('a pessoa vê em "Baixar meus dados" que a administração consultou e bloqueou', sobreCaio.some((a) => a.acao === 'ver_dados_pessoais' && /documento/.test(a.motivo)) && sobreCaio.some((a) => a.acao === 'bloquear_pessoa'), JSON.stringify(sobreCaio))
+r = await api(soAdm, 'GET', `/plataforma/padarias/${nova?.id}`)
+await fetch(`${BASE}/plataforma/padarias/${nova?.id}/documentos/${r.json?.documentos?.[0]?.id}`, { headers: { Cookie: soAdm } })
+r = await api(soAdm, 'GET', '/plataforma/atividade?tipo=decisoes')
+confere('baixar um documento fica registrado', r.json?.some?.((d) => d.acao === 'baixar_documento' && d.padaria === 'Padaria Nova'), `itens ${r.json?.length}`)
 
 // ------------------------------------------------------------------ resultado
 console.log(`\n${'─'.repeat(60)}`)
