@@ -116,6 +116,9 @@ if (setupA.status !== 200 || setupB.status !== 200) {
   console.error('Não foi possível preparar os dados de teste:', setupA.texto, setupB.texto)
   await encerrar(1)
 }
+// Padarias novas entram em análise; nos testes de segurança elas já estão liberadas.
+await db.query("update padaria.padarias set status = 'aprovada'")
+for (const d of [donoA, donoB]) await api('POST', '/auth/login', { corpo: { email: d.email, senha: SENHA } })
 const A = setupA.cookie
 const B = setupB.cookie
 

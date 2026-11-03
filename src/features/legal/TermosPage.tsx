@@ -46,6 +46,16 @@ export function TermosPage() {
             Suspeita de uso indevido? Troque a senha e use "Sair de todos os aparelhos" no seu
             perfil, e avise o responsável.
           </li>
+          <li>
+            Padaria nova passa por uma <strong>análise antes da liberação</strong>: conferimos o
+            cadastro e podemos pedir documentos (como o cartão CNPJ e um documento com foto). Se algo
+            não conferir, informamos o motivo no sistema e você pode corrigir e pedir nova análise.
+          </li>
+          <li>
+            Podemos <strong>suspender o acesso</strong> em caso de uso ilícito, informações falsas ou
+            risco à segurança, sempre informando o motivo. Você pode contestar pelo e-mail de
+            contato, e os dados continuam guardados durante a suspensão.
+          </li>
           <li>O sistema é destinado a maiores de 18 anos, para uso profissional.</li>
         </ul>
       </Secao>

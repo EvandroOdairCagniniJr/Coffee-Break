@@ -12,12 +12,12 @@ import type { Usuario } from './auth.ts'
 import { esquecerUsuario } from './cacheUsuarios.ts'
 import { HttpError, validar } from './http.ts'
 
-export const VERSAO_TERMOS = '2026-11-03.2'
+export const VERSAO_TERMOS = '2026-11-03.3'
 
 // Contrato de licença e prestação de serviços: o mesmo arquivo que o site mostra
 // (src/features/legal/contrato.txt). O hash SHA-256 do texto vai junto com cada assinatura,
 // provando exatamente o que foi assinado. Mudou o texto? Troque a versão no arquivo e aqui.
-export const VERSAO_CONTRATO = '2026-11-03.2'
+export const VERSAO_CONTRATO = '2026-11-03.3'
 const TEXTO_CONTRATO = readFileSync(new URL('../src/features/legal/contrato.txt', import.meta.url), 'utf8')
   .replace(/\r\n/g, '\n')
   .trim()

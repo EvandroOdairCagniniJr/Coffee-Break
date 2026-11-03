@@ -11,6 +11,10 @@ export interface Usuario {
   papel: Papel
   cargo: string
   foto: string | null
+  // Situação da padaria: só 'aprovada' usa o sistema (antes disso, a tela de liberação).
+  padaria_status?: 'pendente' | 'aprovada' | 'recusada' | 'suspensa'
+  // Só vem para a administração da plataforma.
+  plataforma?: true
 }
 
 export interface AlteracaoPerfil {
@@ -43,6 +47,8 @@ interface AuthContextValue {
   signOut: () => Promise<void>
   // Editar perfil: salva no servidor e já atualiza o nome/foto no menu.
   editarPerfil: (dados: AlteracaoPerfil) => Promise<void>
+  // Lê de novo a conta (ex.: para saber se a padaria já foi liberada).
+  atualizarUsuario: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -104,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         primeiroAcesso: (dados) => autenticar('/auth/setup', dados, setUser),
         signOut,
         editarPerfil,
+        atualizarUsuario: async () => setUser(await api.get<Usuario>('/auth/me')),
       }}
     >
       {children}

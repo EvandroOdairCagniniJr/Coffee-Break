@@ -11,7 +11,7 @@ const { default: cookieParser } = await import('cookie-parser')
 const { default: compression } = await import('compression')
 // Importados depois do loadEnvFile: db.ts e auth.ts leem process.env ao carregar.
 const { initDatabase, pool } = await import('./db.ts')
-const { authRouter, exigirLogin } = await import('./auth.ts')
+const { authRouter, exigirLogin, exigirPadariaLiberada } = await import('./auth.ts')
 const { apiRouter } = await import('./routes.ts')
 const { equipeRouter } = await import('./equipe.ts')
 const { timeRouter } = await import('./time.ts')
@@ -26,6 +26,8 @@ const { analiseRouter } = await import('./analise.ts')
 const { promocoesRouter } = await import('./promocoes.ts')
 const { legalRouter, registrarDocumentosLegais } = await import('./legal.ts')
 const { ajudaRouter } = await import('./ajuda.ts')
+const { liberacaoRouter } = await import('./liberacao.ts')
+const { plataformaRouter } = await import('./plataforma.ts')
 const { errorHandler } = await import('./http.ts')
 const { agendarLimpeza, cabecalhosSeguranca, limiteGeral, mesmaOrigem, semCache } = await import(
   './seguranca.ts'
@@ -52,7 +54,9 @@ app.disable('x-powered-by')
 app.use(cabecalhosSeguranca)
 app.use(compression())
 // Limite maior por causa das fotos da equipe (já reduzidas no navegador).
-app.use(express.json({ limit: '1mb', strict: true }))
+const jsonPadrao = express.json({ limit: '1mb', strict: true })
+// O envio de documentos da liberação tem limite próprio, maior (server/liberacao.ts).
+app.use((req, res, next) => (req.path === '/api/liberacao/documentos' ? next() : jsonPadrao(req, res, next)))
 app.use(cookieParser())
 
 // Verificação de saúde do Render (sem login).
@@ -71,20 +75,25 @@ app.get('/api/saude/banco', async (_req, res) => {
   }
 })
 app.use('/api/auth', authRouter)
-app.use('/api/equipe', exigirLogin, equipeRouter)
-app.use('/api/time', exigirLogin, timeRouter)
-app.use('/api/padaria', exigirLogin, padariaRouter)
-app.use('/api/metas', exigirLogin, metasRouter)
-app.use('/api/encomendas', exigirLogin, encomendasRouter)
-app.use('/api/caixa', exigirLogin, caixaRouter)
-app.use('/api/margens', exigirLogin, margensRouter)
-app.use('/api/recomendacoes', exigirLogin, recomendacoesRouter)
-app.use('/api/analise', exigirLogin, analiseRouter)
-app.use('/api/promocoes', exigirLogin, promocoesRouter)
+// Logado E com a padaria liberada pela administração. Contrato, termos e a tela de liberação
+// funcionam antes disso; a administração da plataforma responde 404 para quem não é dela.
+const liberada = [exigirLogin, exigirPadariaLiberada]
+app.use('/api/liberacao', exigirLogin, liberacaoRouter)
+app.use('/api/plataforma', exigirLogin, plataformaRouter)
+app.use('/api/equipe', liberada, equipeRouter)
+app.use('/api/time', liberada, timeRouter)
+app.use('/api/padaria', liberada, padariaRouter)
+app.use('/api/metas', liberada, metasRouter)
+app.use('/api/encomendas', liberada, encomendasRouter)
+app.use('/api/caixa', liberada, caixaRouter)
+app.use('/api/margens', liberada, margensRouter)
+app.use('/api/recomendacoes', liberada, recomendacoesRouter)
+app.use('/api/analise', liberada, analiseRouter)
+app.use('/api/promocoes', liberada, promocoesRouter)
 app.use('/api/legal', exigirLogin, legalRouter)
-app.use('/api/ajuda', exigirLogin, ajudaRouter)
-app.use('/api', exigirLogin, perdasRouter)
-app.use('/api', exigirLogin, apiRouter)
+app.use('/api/ajuda', liberada, ajudaRouter)
+app.use('/api', liberada, perdasRouter)
+app.use('/api', liberada, apiRouter)
 app.use('/api', (_req, res) => {
   res.status(404).json({ message: 'Rota não encontrada' })
 })

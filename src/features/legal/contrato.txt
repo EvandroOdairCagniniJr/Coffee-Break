@@ -1,6 +1,6 @@
 CONTRATO DE LICENÇA DE USO E PRESTAÇÃO DE SERVIÇOS DE SOFTWARE — COFFEE BREAK
 
-Versão 2026-11-03.2
+Versão 2026-11-03.3
 
 PARTES
 
@@ -70,7 +70,9 @@ CLÁUSULA 7 — DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
 
 7.3. A CONTROLADORA autoriza o uso dos suboperadores necessários à prestação do serviço, descritos na Política de Privacidade (hospedagem e banco de dados nos Estados Unidos, envio de e-mail e consulta de CEP), e está ciente da transferência internacional decorrente.
 
-7.4. Os demais aspectos do tratamento de dados estão na Política de Privacidade, que integra este contrato.
+7.4. Quanto aos dados do cadastro da padaria e do seu responsável, inclusive os documentos enviados para a liberação, a CONTRATADA é a CONTROLADORA e os usa para verificar o cadastro, prevenir fraudes e prestar o serviço.
+
+7.5. Os demais aspectos do tratamento de dados estão na Política de Privacidade, que integra este contrato.
 
 CLÁUSULA 8 — DA DISPONIBILIDADE E DA LIMITAÇÃO DE RESPONSABILIDADE
 
@@ -84,15 +86,17 @@ CLÁUSULA 9 — DA CONFIDENCIALIDADE
 
 9.1. As partes manterão sigilo sobre as informações não públicas a que tiverem acesso em razão deste contrato, salvo ordem legal ou judicial.
 
-CLÁUSULA 10 — DA VIGÊNCIA, SUSPENSÃO E RESCISÃO
+CLÁUSULA 10 — DA VIGÊNCIA, LIBERAÇÃO, SUSPENSÃO E RESCISÃO
 
 10.1. Este contrato vigora por prazo indeterminado, a partir da assinatura eletrônica.
 
-10.2. A CONTRATANTE pode encerrar o contrato a qualquer momento, sem multa, comunicando pelo e-mail da CONTRATADA.
+10.2. O uso do Coffee Break começa depois da análise e da liberação do cadastro pela CONTRATADA, que pode pedir documentos que comprovem a existência do estabelecimento e os poderes de quem assina, como o cartão CNPJ e um documento com foto. A CONTRATADA pode recusar o cadastro, informando o motivo no próprio sistema, e a CONTRATANTE pode corrigir as informações e pedir nova análise.
 
-10.3. A CONTRATADA pode encerrar o contrato com aviso prévio de 30 (trinta) dias, ou suspender o acesso imediatamente em caso de uso ilícito, violação da Cláusula 4 ou risco à segurança do serviço.
+10.3. A CONTRATANTE pode encerrar o contrato a qualquer momento, sem multa, comunicando pelo e-mail da CONTRATADA.
 
-10.4. Encerrado o contrato, os dados serão eliminados em até 30 (trinta) dias, salvo os que a lei obriga a guardar, como os registros de acesso (Lei 12.965/2014, art. 15).
+10.4. A CONTRATADA pode encerrar o contrato com aviso prévio de 30 (trinta) dias, ou suspender o acesso imediatamente em caso de uso ilícito, violação da Cláusula 4, informações falsas no cadastro ou risco à segurança do serviço. O motivo da suspensão é informado no sistema e pode ser contestado pelo e-mail da CONTRATADA; durante a suspensão, os dados continuam guardados.
+
+10.5. Encerrado o contrato, os dados serão eliminados em até 30 (trinta) dias, salvo os que a lei obriga a guardar, como os registros de acesso (Lei 12.965/2014, art. 15).
 
 CLÁUSULA 11 — DAS ALTERAÇÕES
 

@@ -94,6 +94,10 @@ const dono = (await api(null, 'POST', '/auth/setup', {
   senha: SENHA,
   aceite_termos: true, padaria: { nome_fantasia: 'Padaria Teste' },
 })).cookie
+// Padaria nova entra em análise; aqui ela já é liberada (o fluxo de liberação tem o cenário 17).
+await db.query("update padaria.padarias set status = 'aprovada'")
+// Entrar de novo lê a conta do banco (o servidor guarda a sessão em cache por 15 s).
+await api(null, 'POST', '/auth/login', { email: `rosa.${id}@teste.local`, senha: SENHA })
 await api(dono, 'POST', '/equipe/membros', { nome: 'Caio Balcão', email: `caio.${id}@teste.local`, senha: SENHA, papel: 'funcionario' })
 const func = (await api(null, 'POST', '/auth/login', { email: `caio.${id}@teste.local`, senha: SENHA })).cookie
 
@@ -379,6 +383,75 @@ confere('RSS: entidades HTML viram texto', lidas[1]?.titulo === 'Preço do trigo
 const comCodigoRuim = lerRss('<item><title>Pão &#x110000; quente &#99999999;</title><link>https://exemplo.com/c</link></item>')
 confere('RSS: caractere fora do Unicode não derruba a lista', comCodigoRuim.length === 1, JSON.stringify(comCodigoRuim))
 confere('release: destaques sem marcação Markdown', JSON.stringify(destaquesDaRelease('## Título\n- **Novo** recurso `x`\n- Veja [aqui](https://a.b)\ntexto')) === JSON.stringify(['Novo recurso x', 'Veja aqui']))
+
+cenario('17. Liberação da padaria pela administração do Coffee Break')
+r = await api(null, 'POST', '/auth/setup', { nome: 'Nina Nova', email: `nina.${id}@teste.local`, senha: SENHA, aceite_termos: true, padaria: { nome_fantasia: 'Padaria Nova', cnpj: '11.222.333/0001-81' } })
+const nina = r.cookie
+confere('padaria nova nasce em análise', r.status === 200 && r.json?.padaria_status === 'pendente', JSON.stringify(r.json))
+confere('o dono não fica sabendo que existe administração', r.json && !('plataforma' in r.json) && !('plataforma_admin' in r.json), JSON.stringify(r.json))
+r = await api(nina, 'GET', '/produtos')
+confere('padaria em análise não usa o sistema', r.status === 403 && r.json?.codigo === 'padaria_nao_liberada', `status ${r.status}`)
+r = await api(nina, 'GET', '/legal/contrato')
+confere('em análise, o contrato continua disponível para assinar', r.status === 200 && r.json?.pendente === true, `status ${r.status}`)
+r = await api(nina, 'GET', '/liberacao')
+confere('o dono vê a situação da análise', r.status === 200 && r.json?.status === 'pendente' && r.json?.padaria?.nome_fantasia === 'Padaria Nova', JSON.stringify(r.json))
+const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF').toString('base64')
+r = await api(nina, 'POST', '/liberacao/documentos', { descricao: 'Cartão CNPJ', nome_arquivo: 'cartao-cnpj.pdf', conteudo: `data:application/pdf;base64,${pdf}` })
+confere('dono envia um documento em PDF', r.status === 201 && r.json?.tipo === 'application/pdf', `status ${r.status} ${r.texto}`)
+r = await api(nina, 'POST', '/liberacao/documentos', { descricao: 'Falso', nome_arquivo: 'virus.pdf', conteudo: Buffer.from('<script>alert(1)</script>').toString('base64') })
+confere('arquivo que não é PDF nem imagem é recusado, mesmo com nome .pdf', r.status === 400, `status ${r.status}`)
+r = await api(nina, 'POST', '/liberacao/documentos', { descricao: 'Grande', nome_arquivo: 'grande.pdf', conteudo: Buffer.concat([Buffer.from('%PDF'), Buffer.alloc(3.2 * 1024 * 1024)]).toString('base64') })
+confere('arquivo acima de 3 MB é recusado', r.status === 413, `status ${r.status}`)
+
+r = await api(dono, 'GET', '/plataforma/resumo')
+confere('quem não administra recebe "rota não encontrada"', r.status === 404 && r.json?.message === 'Rota não encontrada', `status ${r.status}`)
+r = await api(nina, 'GET', '/plataforma/padarias')
+confere('dono em análise também não vê a administração', r.status === 404, `status ${r.status}`)
+
+// A administração é dada direto no banco (npm run plataforma:admin); entrar de novo lê a marca.
+await db.query(`update padaria.usuarios set plataforma_admin = true where email = 'rosa.${id}@teste.local'`)
+r = await api(null, 'POST', '/auth/login', { email: `rosa.${id}@teste.local`, senha: SENHA })
+const adm = r.cookie
+confere('quem administra recebe a marca ao entrar', r.json?.plataforma === true, JSON.stringify(r.json))
+r = await api(adm, 'GET', '/plataforma/resumo')
+confere('o painel mostra quantas padarias esperam liberação', r.status === 200 && r.json?.por_status?.pendente >= 1, JSON.stringify(r.json))
+r = await api(adm, 'GET', '/plataforma/padarias?status=pendente')
+const nova = r.json?.find?.((p) => p.nome_fantasia === 'Padaria Nova')
+confere('a padaria nova aparece na fila, com o dono e o documento', nova?.dono_email === `nina.${id}@teste.local` && nova?.documentos === 1, JSON.stringify(nova))
+r = await api(adm, 'GET', `/plataforma/padarias/${nova?.id}`)
+confere('o detalhe traz o cadastro, as pessoas e os documentos', r.json?.dados?.cnpj && r.json?.pessoas?.length === 1 && r.json?.documentos?.length === 1, `status ${r.status}`)
+const baixado = await fetch(`${BASE}/plataforma/padarias/${nova?.id}/documentos/${r.json?.documentos?.[0]?.id}`, { headers: { Cookie: adm } })
+const bytes = Buffer.from(await baixado.arrayBuffer())
+confere('o documento baixa como anexo, com o tipo conferido', baixado.status === 200 && baixado.headers.get('content-type') === 'application/pdf' && /attachment/.test(baixado.headers.get('content-disposition') ?? '') && bytes.subarray(0, 4).toString() === '%PDF')
+const baixadoDono = await fetch(`${BASE}/plataforma/padarias/${nova?.id}/documentos/${r.json?.documentos?.[0]?.id}`, { headers: { Cookie: nina } })
+confere('o dono não baixa documentos pela administração', baixadoDono.status === 404, `status ${baixadoDono.status}`)
+
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'recusar' })
+confere('recusar sem motivo é barrado', r.status === 400, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'recusar', motivo: 'Envie também um documento com foto do responsável.' })
+confere('a administração recusa com motivo', r.status === 200 && r.json?.status === 'recusada', `status ${r.status}`)
+r = await api(nina, 'GET', '/liberacao')
+confere('o dono vê a recusa e o motivo', r.json?.status === 'recusada' && /documento com foto/.test(r.json?.motivo ?? ''), JSON.stringify(r.json))
+r = await api(nina, 'POST', '/liberacao/nova-analise')
+confere('o dono pede nova análise', r.status === 204, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'suspender', motivo: 'Teste de transição inválida.' })
+confere('não dá para suspender quem ainda está em análise', r.status === 409, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'aprovar' })
+confere('a administração libera a padaria', r.status === 200 && r.json?.status === 'aprovada', `status ${r.status}`)
+r = await api(nina, 'GET', '/produtos')
+confere('liberada, a padaria usa o sistema na hora', r.status === 200, `status ${r.status}`)
+r = await api(nina, 'POST', '/liberacao/documentos', { descricao: 'Depois', nome_arquivo: 'x.pdf', conteudo: pdf })
+confere('depois de liberada, os documentos não mudam', r.status === 409, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'suspender', motivo: 'Pagamento em atraso há 60 dias.' })
+r = await api(nina, 'GET', '/produtos')
+confere('suspensa, a padaria volta a ficar bloqueada', r.status === 403, `status ${r.status}`)
+r = await api(adm, 'POST', `/plataforma/padarias/${nova?.id}/status`, { acao: 'reativar' })
+r = await api(nina, 'GET', '/produtos')
+confere('reativada, volta a funcionar', r.status === 200, `status ${r.status}`)
+r = await api(adm, 'GET', `/plataforma/padarias/${nova?.id}`)
+confere('cada decisão fica no histórico, com o motivo', r.json?.historico?.length === 4 && r.json.historico.some((h) => h.acao === 'recusar' && h.motivo), JSON.stringify(r.json?.historico?.map((h) => h.acao)))
+confere('o histórico da administração não pode ser apagado', await db.query('delete from padaria.plataforma_acoes').then(() => false, (e) => /Registro legal/.test(e.message)))
+await db.query(`update padaria.usuarios set plataforma_admin = false where email = 'rosa.${id}@teste.local'`)
 
 // ------------------------------------------------------------------ resultado
 console.log(`\n${'─'.repeat(60)}`)

@@ -52,6 +52,10 @@ export function PrivacidadePage() {
             <strong>Dados da padaria:</strong> nome, razão social, CNPJ, endereço, contatos e logo.
           </li>
           <li>
+            <strong>Documentos para a liberação:</strong> os arquivos que o dono envia na análise do
+            cadastro, como o cartão CNPJ, o alvará e um documento com foto do responsável.
+          </li>
+          <li>
             <strong>Uso do sistema:</strong> vendas, caixa, estoque, produção e quem registrou cada ação.
           </li>
           <li>
@@ -78,6 +82,12 @@ export function PrivacidadePage() {
           </li>
           <li>
             <strong>Recuperar a senha</strong> (envio de código por e-mail): execução de contrato.
+          </li>
+          <li>
+            <strong>Analisar e liberar o cadastro da padaria</strong> (conferir os dados e os
+            documentos enviados e prevenir fraude): procedimentos preliminares do contrato (art. 7º,
+            V) e legítimo interesse (art. 7º, IX). Só a administração do Coffee Break vê esses
+            documentos.
           </li>
           <li>
             Para os dados da equipe e dos clientes, a base legal é definida pela padaria, por exemplo o
@@ -147,6 +157,10 @@ export function PrivacidadePage() {
             automaticamente.
           </li>
           <li>Código de recuperação de senha: 15 minutos.</li>
+          <li>
+            Documentos enviados para a liberação: enquanto a conta existir. Se o cadastro for recusado
+            e não for corrigido, são apagados automaticamente depois de 6 meses.
+          </li>
           <li>
             Aceites dos Termos e da Política e assinaturas do contrato (nome, e-mail, data e hora, IP,
             navegador, versão e código de integridade do texto), junto com o texto inteiro de cada

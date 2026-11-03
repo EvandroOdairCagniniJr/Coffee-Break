@@ -20,6 +20,7 @@
     "docs": "node scripts/gerar-docs.mjs",
     "teste:funcional": "node scripts/teste-funcional.mjs",
     "provas": "node scripts/provas-legais.ts",
+    "plataforma:admin": "node scripts/plataforma-admin.ts",
     "teste": "node scripts/teste-funcional.mjs && node scripts/teste-seguranca.mjs"
   },
   "dependencies": {

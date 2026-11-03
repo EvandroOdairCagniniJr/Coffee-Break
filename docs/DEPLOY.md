@@ -10,7 +10,7 @@ Endereço: https://padaria-info.onrender.com · Painel: Render → serviço `pad
 - [ ] `npx tsc -b`: sem erros de tipo.
 - [ ] `npx oxlint`: sem **erros** (avisos de fast refresh já conhecidos podem ficar).
 - [ ] `npm run build`: o site compila.
-- [ ] `npm run teste`: **152 de 152** (107 funcionais + 45 de segurança), num banco temporário. A **Checagem** do GitHub roda o mesmo a cada push: confira se ficou verde.
+- [ ] `npm run teste`: **180 de 180** (135 funcionais + 45 de segurança), num banco temporário. A **Checagem** do GitHub roda o mesmo a cada push: confira se ficou verde.
 - [ ] `npm audit --omit=dev`: 0 vulnerabilidades no que vai para produção.
 - [ ] Mexeu em tela? Confira num servidor de demonstração (banco em memória, dados fictícios) ou no `npm run dev` com o banco local.
 
@@ -60,3 +60,16 @@ Volte se, depois do deploy:
 1. **Mais rápido:** Render → Deploys → no deploy anterior que estava **Live**, clique em **Rollback**. O código volta em 1 a 2 minutos.
 2. **No código:** `git revert <commit>` e `git push`. O Render publica a versão desfeita.
 3. **Banco:** as mudanças do `schema.sql` **não** voltam sozinhas com o rollback. Se uma migração causou o problema, desfaça com um SQL específico no Supabase (SQL Editor), revisado antes. Por isso as migrações devem ser pequenas e só adicionar coisas.
+
+## Administração da plataforma
+
+Padaria nova só usa o sistema depois de liberada no item **Administração** do menu, que só aparece para quem administra o Coffee Break. As padarias que já existiam continuam liberadas.
+
+Para dar a administração a uma conta (ela precisa já existir no site):
+
+1. No `.env`, troque temporariamente o `DATABASE_URL` pela URL de produção (a que fica comentada).
+2. Rode `npm run plataforma:admin -- seu@email.com`.
+3. Volte o `DATABASE_URL` para o banco local.
+4. Entre de novo no site: o item **Administração** aparece no menu.
+
+Para tirar: `npm run plataforma:admin -- email --tirar`. Não existe tela nem rota para dar essa marca: só quem tem o acesso ao banco consegue.

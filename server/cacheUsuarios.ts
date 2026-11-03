@@ -20,3 +20,8 @@ export function guardarNoCache(id: string, linha: RowDataPacket) {
 export function esquecerUsuario(id: string) {
   cache.delete(id)
 }
+
+// Mudou algo que vale para várias pessoas (ex.: a padaria foi liberada ou suspensa).
+export function esquecerTodos() {
+  cache.clear()
+}

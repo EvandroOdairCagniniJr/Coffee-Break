@@ -107,6 +107,12 @@ export async function limparDadosAntigos() {
   try {
     await pool.query(`delete from log_acessos where created_at < now() - interval '1 year'`)
     await pool.query('delete from codigos_senha where expira_em < now()')
+    // Cadastro recusado e não corrigido em 6 meses: os documentos enviados para a análise saem
+    // (Política de Privacidade, item 9).
+    await pool.query(
+      `delete from padaria_documentos d using padarias p
+       where p.id = d.padaria_id and p.status = 'recusada' and p.status_em < now() - interval '180 days'`,
+    )
   } catch (err) {
     console.error('Falha na limpeza de dados antigos:', (err as Error).message)
   }

@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute } from '@/app/ProtectedRoute'
 import { MainLayout } from '@/app/MainLayout'
 import { RequirePapel } from '@/app/RequirePapel'
+import { RequirePlataforma } from '@/app/RequirePlataforma'
 import { paginas } from '@/app/paginas'
 
 const LoginPage = lazy(paginas.login)
@@ -27,6 +28,10 @@ const CaixaPage = lazy(paginas.caixa)
 const MargensPage = lazy(paginas.margens)
 const AnalisePage = lazy(paginas.analise)
 const PromocoesPage = lazy(paginas.promocoes)
+// Fora de 'paginas' de propósito: não entra no pré-carregamento, só quem administra baixa.
+const PlataformaPage = lazy(() =>
+  import('@/features/plataforma/PlataformaPage').then((m) => ({ default: m.PlataformaPage })),
+)
 
 const carregando = (
   <div className="flex min-h-svh items-center justify-center">
@@ -93,6 +98,10 @@ export function AppRouter() {
               <Route path="margens" element={<MargensPage />} />
               <Route path="analise" element={<AnalisePage />} />
               <Route path="promocoes" element={<PromocoesPage />} />
+            </Route>
+
+            <Route element={<RequirePlataforma />}>
+              <Route path="plataforma" element={<PlataformaPage />} />
             </Route>
 
             <Route element={<RequirePapel papeis={['dono']} />}>

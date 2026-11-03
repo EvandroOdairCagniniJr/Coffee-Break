@@ -47,6 +47,20 @@ export interface Usuario {
   papel: Papel
   cargo: string
   foto: string | null
+  // Situação da padaria na plataforma: só 'aprovada' usa o sistema (ver exigirPadariaLiberada).
+  padaria_status: string
+  // Administração do Coffee Break (marca dada pelo script scripts/plataforma-admin.ts).
+  plataforma_admin: boolean
+}
+
+export type StatusPadaria = 'pendente' | 'aprovada' | 'recusada' | 'suspensa'
+
+// O que o navegador recebe: a marca de administração só aparece para quem a tem, para o
+// dono e a equipe nem saberem que existe.
+export function paraCliente(u: Usuario | null) {
+  if (!u) return null
+  const { plataforma_admin, ...resto } = u
+  return plataforma_admin ? { ...resto, plataforma: true } : resto
 }
 
 // Senha nova: 8+ caracteres, com letras e números (as já existentes continuam valendo).
@@ -84,7 +98,7 @@ function sairDoAparelho(res: Response) {
   res.clearCookie(COOKIE, opcoesCookie)
 }
 
-async function iniciarSessao(res: Response, usuario: Usuario) {
+async function iniciarSessao(res: Response, usuario: Pick<Usuario, 'id'>) {
   // A versão da sessão vai no token: trocar a senha ou desativar invalida os tokens antigos.
   const [rows] = await pool.query<RowDataPacket[]>('select sessao_versao from usuarios where id = ?', [
     usuario.id,
@@ -94,7 +108,7 @@ async function iniciarSessao(res: Response, usuario: Usuario) {
   })
   // Em produção (HTTPS) o cookie só trafega criptografado.
   res.cookie(COOKIE, token, { ...opcoesCookie, maxAge: SETE_DIAS_MS })
-  res.json(usuario)
+  res.json(paraCliente(await buscarUsuarioAtivo(usuario.id)))
 }
 
 async function buscarUsuarioAtivo(
@@ -105,7 +119,10 @@ async function buscarUsuarioAtivo(
   let u = usarCache ? lerDoCache(id) : null
   if (!u) {
     const [rows] = await pool.query<RowDataPacket[]>(
-      `select ${colunasUsuario}, sessao_versao from usuarios where id = ? and ativo = true`,
+      `select u.id, u.padaria_id, u.nome, u.email, u.papel, u.cargo, u.foto, u.sessao_versao, u.plataforma_admin,
+              coalesce(p.status, 'aprovada') as padaria_status
+       from usuarios u left join padarias p on p.id = u.padaria_id
+       where u.id = ? and u.ativo = true`,
       [id],
     )
     u = rows[0] ?? null
@@ -200,15 +217,7 @@ function garantirAtivo(u: RowDataPacket) {
 
 async function entrar(res: Response, u: RowDataPacket) {
   await pool.query('update usuarios set ultimo_acesso = now() where id = ?', [u.id])
-  await iniciarSessao(res, {
-    id: u.id,
-    padaria_id: u.padaria_id,
-    nome: u.nome,
-    email: u.email,
-    papel: u.papel,
-    cargo: u.cargo,
-    foto: u.foto,
-  })
+  await iniciarSessao(res, { id: u.id })
 }
 
 const emailUsado = new HttpError(
@@ -377,7 +386,7 @@ authRouter.post('/sair-de-todos', exigirLogin, async (req, res) => {
 })
 
 authRouter.get('/me', exigirLogin, (_req, res) => {
-  res.json(res.locals.usuario)
+  res.json(paraCliente(res.locals.usuario))
 })
 
 // Cadastrar minha padaria: cria a padaria e a conta do dono (qualquer pessoa, a qualquer hora).
@@ -406,11 +415,14 @@ authRouter.post('/setup', async (req, res) => {
     papel: 'dono',
     cargo: CARGO_DONO,
     foto: null,
+    padaria_status: 'pendente',
+    plataforma_admin: false,
   }
   const senhaHash = await hashSenha(dados.senha)
   // Padaria, dono e aceite dos termos entram juntos: se um falhar, nada fica pela metade.
   await transaction(async (conn) => {
-    await conn.query('insert into padarias (id, dados, codigo_convite) values (?, ?, ?)', [
+    // Padaria nova entra em análise: só usa o sistema depois da liberação (server/plataforma.ts).
+    await conn.query(`insert into padarias (id, dados, codigo_convite, status, status_em) values (?, ?, ?, 'pendente', now())`, [
       padariaId,
       JSON.stringify(dados.padaria),
       novoCodigoConvite(),
@@ -455,7 +467,7 @@ authRouter.patch('/perfil', exigirLogin, async (req, res) => {
   const usuario = res.locals.usuario as Usuario
   await garantirCpfUnico(dados.cpf, usuario.id)
   await alterarPerfil(usuario.id, usuario.id, dados)
-  res.json(await buscarUsuarioAtivo(usuario.id))
+  res.json(paraCliente(await buscarUsuarioAtivo(usuario.id)))
 })
 
 // Perfil completo de quem está logado (Editar perfil): dados pessoais, endereço, trabalho.
@@ -491,6 +503,23 @@ export async function exigirLogin(req: Request, res: Response, next: NextFunctio
   res.locals.usuario = usuario
   res.locals.padariaId = usuario.padaria_id
   next()
+}
+
+// Padaria ainda não liberada (ou suspensa): só a tela de liberação, o contrato e a conta
+// funcionam. A administração da plataforma passa sempre.
+export function exigirPadariaLiberada(_req: Request, res: Response, next: NextFunction) {
+  const u = res.locals.usuario as Usuario
+  if (u.plataforma_admin || u.padaria_status === 'aprovada') {
+    next()
+    return
+  }
+  res.status(403).json({
+    message:
+      u.padaria_status === 'suspensa'
+        ? 'O acesso desta padaria está suspenso. Fale com o suporte do Coffee Break.'
+        : 'Esta padaria ainda está em análise. Assim que for liberada, o sistema abre.',
+    codigo: 'padaria_nao_liberada',
+  })
 }
 
 export function exigirPapel(...papeis: Papel[]): RequestHandler<Record<string, string>> {

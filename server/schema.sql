@@ -104,6 +104,47 @@ create table if not exists aceites_termos (
 create index if not exists aceites_termos_usuario_idx on aceites_termos (usuario_id, aceito_em);
 create index if not exists aceites_termos_email_idx on aceites_termos (email);
 
+-- Liberação da padaria pela administração do Coffee Break. Padarias que já existiam ficam
+-- aprovadas (padrão da coluna); o cadastro novo (POST /auth/setup) entra como 'pendente'.
+-- pendente → aprovada | recusada; recusada → pendente (nova análise) | aprovada;
+-- aprovada → suspensa; suspensa → aprovada.
+alter table padarias add column if not exists status varchar(20) not null default 'aprovada';
+alter table padarias add column if not exists status_motivo text;
+alter table padarias add column if not exists status_em timestamptz;
+create index if not exists padarias_status_idx on padarias (status, created_at);
+
+-- Administração da plataforma: só quem tem esta marca (dada pelo script
+-- scripts/plataforma-admin.ts, direto no banco). Nunca aparece para dono nem para a equipe.
+alter table usuarios add column if not exists plataforma_admin boolean not null default false;
+
+-- Documentos que o dono envia para a análise (cartão CNPJ, alvará, documento pessoal...).
+create table if not exists padaria_documentos (
+  id text primary key,
+  padaria_id text not null references padarias (id),
+  enviado_por text references usuarios (id),
+  descricao varchar(120) not null,
+  nome_arquivo varchar(160) not null,
+  tipo varchar(40) not null,
+  tamanho integer not null,
+  conteudo bytea not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists padaria_documentos_padaria_idx on padaria_documentos (padaria_id, created_at);
+
+-- O que a administração fez em cada padaria (aprovar, recusar, suspender...). Nunca é apagado.
+create table if not exists plataforma_acoes (
+  id text primary key,
+  admin_id text not null references usuarios (id),
+  padaria_id text not null references padarias (id),
+  acao varchar(20) not null,
+  status_anterior varchar(20),
+  status_novo varchar(20) not null,
+  motivo text,
+  ip varchar(64),
+  created_at timestamptz not null default now()
+);
+create index if not exists plataforma_acoes_padaria_idx on plataforma_acoes (padaria_id, created_at);
+
 -- Provas não se alteram: o banco recusa update e delete nessas três tabelas.
 create or replace function bloquear_alteracao_prova() returns trigger language plpgsql as $$
 begin
@@ -114,6 +155,9 @@ create trigger assinaturas_contrato_imutavel before update or delete on assinatu
   for each row execute function bloquear_alteracao_prova();
 drop trigger if exists aceites_termos_imutavel on aceites_termos;
 create trigger aceites_termos_imutavel before update or delete on aceites_termos
+  for each row execute function bloquear_alteracao_prova();
+drop trigger if exists plataforma_acoes_imutavel on plataforma_acoes;
+create trigger plataforma_acoes_imutavel before update or delete on plataforma_acoes
   for each row execute function bloquear_alteracao_prova();
 drop trigger if exists documentos_legais_imutavel on documentos_legais;
 create trigger documentos_legais_imutavel before update or delete on documentos_legais

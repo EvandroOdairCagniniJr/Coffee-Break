@@ -4,9 +4,9 @@ Dois testes automáticos, que rodam isolados: banco temporário em memória, ser
 
 | Comando | O que testa | Verificações |
 |---|---|---|
-| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 107 |
+| `npm run teste:funcional` | O dia a dia da padaria, de ponta a ponta, conferindo valores, estoque e caixa centavo por centavo, e a LGPD (aceite e exportação de dados) | 135 |
 | `npm run teste:seguranca` | Ataques: login forjado, isolamento entre padarias, papéis, SQL injection, CSRF, vazamentos e força bruta | 45 |
-| `npm run teste` | Os dois, em sequência | 152 |
+| `npm run teste` | Os dois, em sequência | 180 |
 
 Rode `npm run teste` antes de todo push (veja [DEPLOY.md](DEPLOY.md)).
 
@@ -32,6 +32,7 @@ Padaria fictícia: dona (dono), Caio (funcionário) e os produtos Pão francês 
 | 14 | Minha padaria | Logo e comprovante personalizado salvos e devolvidos iguais · logo que não é imagem, cor fora da lista e título longo são recusados · funcionário vê a logo |
 | 15 | Termos e LGPD | Criar padaria ou conta sem aceitar os termos é recusado · aceite registrado com data e versão · funcionário cadastrado pelo dono aceita no primeiro acesso · "Baixar meus dados" traz perfil e acessos, sem senha nem dados de outros · sem login não baixa nada · contrato: só o dono assina, com o nome da conta, hash do texto exato · **provas no banco**: texto inteiro de cada versão, histórico de aceites com IP, o banco recusa alterar ou apagar · repetir aceite ou assinatura não grava linhas novas |
 | 16 | Central de dúvidas | Notícias e novidades exigem login e respondem com lista (vazia se a internet falhar) · RSS: fonte separada do título, link `javascript:` descartado, entidades HTML viram texto · destaques da release sem Markdown |
+| 17 | Liberação pela administração | Padaria nova nasce em análise e não usa o sistema · dono não sabe que existe administração · documento PDF aceito, arquivo disfarçado e acima de 3 MB recusados · não administrador recebe 404 · fila, detalhe e download do documento (anexo, tipo conferido) · recusar exige motivo · nova análise · transição inválida barrada · liberar, suspender e reativar valem na hora · histórico imutável |
 
 ## Quando um teste falhar
 

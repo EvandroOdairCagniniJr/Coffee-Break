@@ -12,6 +12,7 @@ import {
   Percent,
   Receipt,
   Scale,
+  ShieldCheck,
   ShoppingCart,
   Store,
   Tag,
@@ -26,6 +27,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { BoasVindas } from '@/app/BoasVindas'
 import { PortaoContrato } from '@/features/legal/PortaoContrato'
+import { TelaLiberacao } from '@/features/liberacao/TelaLiberacao'
 import { PortaoTermos } from '@/features/legal/TermosPendentes'
 import { Avatar } from '@/components/Avatar'
 import { LogoPadaria, LogoPao } from '@/components/LogoPao'
@@ -46,6 +48,8 @@ type ItemMenu = {
   icon: typeof LayoutDashboard
   papeis: Papel[]
   end?: boolean
+  // Só para a administração da plataforma (some para todo o resto).
+  somentePlataforma?: boolean
 }
 
 // Menu em seções. Mesmas regras das rotas em AppRouter (RequirePapel).
@@ -87,6 +91,7 @@ const secoes: { titulo: string | null; itens: ItemMenu[] }[] = [
       { to: '/equipe', label: 'Equipe', icon: Users, papeis: todos },
       { to: '/padaria', label: 'Minha padaria', icon: Store, papeis: ['dono'] },
       { to: '/guia', label: 'Guia e dicas', icon: BookOpen, papeis: todos },
+      { to: '/plataforma', label: 'Administração', icon: ShieldCheck, papeis: todos, somentePlataforma: true },
       { to: '/saber', label: 'Leis e boas práticas', icon: Scale, papeis: todos },
     ],
   },
@@ -119,7 +124,22 @@ function Logo({ assinatura = true }: { assinatura?: boolean }) {
   )
 }
 
+// Padaria ainda não liberada pela administração do Coffee Break: no lugar do sistema, só o
+// contrato (dono) e a tela de liberação. Nada do menu nem das telas carrega antes disso.
 export function MainLayout() {
+  const { user } = useAuth()
+  const liberada = !user || user.plataforma || !user.padaria_status || user.padaria_status === 'aprovada'
+  if (!liberada) {
+    return (
+      <PortaoContrato>
+        <TelaLiberacao />
+      </PortaoContrato>
+    )
+  }
+  return <LayoutDoSistema />
+}
+
+function LayoutDoSistema() {
   const { user, signOut } = useAuth()
   // Gaveta do menu em telas pequenas.
   const [menuAberto, setMenuAberto] = useState(false)
@@ -140,7 +160,9 @@ export function MainLayout() {
     <>
       <nav className="rolagem-menu flex-1 space-y-4 overflow-y-auto p-3">
         {secoes.map((secao) => {
-          const itens = secao.itens.filter((item) => user && item.papeis.includes(user.papel))
+          const itens = secao.itens.filter((item) =>
+            user && (item.somentePlataforma ? user.plataforma === true : item.papeis.includes(user.papel)),
+          )
           if (itens.length === 0) return null
           return (
             <div key={secao.titulo ?? 'inicio'} className="space-y-1">
