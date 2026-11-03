@@ -14,6 +14,7 @@ import { AjustarEstoqueDialog } from '@/features/estoque/AjustarEstoqueDialog'
 import { useProdutos } from '@/features/produtos/api'
 import type { Produto } from '@/types/database'
 import { IconeProduto } from '@/components/IconeProduto'
+import { VoceSabia } from '@/features/saber/VoceSabia'
 
 export function EstoquePage() {
   const { data: produtos, isLoading } = useProdutos()
@@ -40,6 +41,8 @@ export function EstoquePage() {
           Acompanhe o estoque atual e registre entradas, saídas e ajustes
         </p>
       </div>
+
+      <VoceSabia tela="estoque" />
 
       <div className="rounded-lg border bg-card">
         <Table>

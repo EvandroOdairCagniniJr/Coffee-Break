@@ -28,3 +28,6 @@ dist-ssr
 
 # Banco PostgreSQL local (npm run banco:local)
 .banco-local
+
+# Dossiês de provas legais (dados pessoais): gerados por npm run provas, nunca vão para o GitHub
+provas/

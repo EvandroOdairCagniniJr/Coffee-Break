@@ -4,11 +4,13 @@ import { PlanejamentoView } from '@/features/producao/PlanejamentoView'
 import { PerdasView } from '@/features/producao/PerdasView'
 import { ReceitasView } from '@/features/producao/ReceitasView'
 import { SugestaoView } from '@/features/producao/SugestaoView'
+import { VoceSabia } from '@/features/saber/VoceSabia'
 
 type Aba = 'sugestao' | 'planejamento' | 'receitas' | 'perdas'
 
 export function ProducaoPage() {
   const [aba, setAba] = useState<Aba>('sugestao')
+  const telaDica = aba === 'receitas' ? 'receitas' : aba === 'perdas' ? 'perdas' : 'producao'
 
   return (
     <div className="space-y-6">
@@ -43,6 +45,8 @@ export function ProducaoPage() {
           </button>
         ))}
       </div>
+
+      <VoceSabia key={telaDica} tela={telaDica} />
 
       {aba === 'sugestao' && <SugestaoView />}
       {aba === 'planejamento' && <PlanejamentoView />}

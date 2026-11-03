@@ -70,6 +70,54 @@ create table if not exists assinaturas_contrato (
 );
 create index if not exists assinaturas_contrato_padaria_idx on assinaturas_contrato (padaria_id, assinado_em);
 create index if not exists assinaturas_contrato_usuario_idx on assinaturas_contrato (usuario_id);
+-- Retrato de quem assinou, para a prova valer sozinha mesmo se a conta mudar depois.
+alter table assinaturas_contrato add column if not exists email_conta varchar(255);
+alter table assinaturas_contrato add column if not exists padaria_nome varchar(255);
+
+-- Texto inteiro de cada versão publicada do contrato, dos Termos e da Política, com o hash.
+-- O servidor grava ao subir (server/legal.ts); cada aceite e assinatura aponta para o hash.
+create table if not exists documentos_legais (
+  tipo varchar(20) not null,
+  versao varchar(20) not null,
+  hash char(64) not null,
+  texto text not null,
+  publicado_em timestamptz not null default now(),
+  primary key (tipo, hash)
+);
+
+-- Histórico de todos os aceites dos Termos e da Política (cadastro, novo aceite, contrato).
+-- Nome e e-mail ficam copiados: a prova continua de pé mesmo se a conta mudar.
+create table if not exists aceites_termos (
+  id text primary key,
+  padaria_id text references padarias (id),
+  usuario_id text references usuarios (id),
+  nome varchar(255) not null,
+  email varchar(255) not null,
+  versao varchar(20) not null,
+  hash_termos char(64) not null,
+  hash_privacidade char(64) not null,
+  origem varchar(20) not null,
+  ip varchar(64),
+  navegador varchar(255),
+  aceito_em timestamptz not null default now()
+);
+create index if not exists aceites_termos_usuario_idx on aceites_termos (usuario_id, aceito_em);
+create index if not exists aceites_termos_email_idx on aceites_termos (email);
+
+-- Provas não se alteram: o banco recusa update e delete nessas três tabelas.
+create or replace function bloquear_alteracao_prova() returns trigger language plpgsql as $$
+begin
+  raise exception 'Registro legal (%): não pode ser alterado nem apagado', tg_table_name;
+end $$;
+drop trigger if exists assinaturas_contrato_imutavel on assinaturas_contrato;
+create trigger assinaturas_contrato_imutavel before update or delete on assinaturas_contrato
+  for each row execute function bloquear_alteracao_prova();
+drop trigger if exists aceites_termos_imutavel on aceites_termos;
+create trigger aceites_termos_imutavel before update or delete on aceites_termos
+  for each row execute function bloquear_alteracao_prova();
+drop trigger if exists documentos_legais_imutavel on documentos_legais;
+create trigger documentos_legais_imutavel before update or delete on documentos_legais
+  for each row execute function bloquear_alteracao_prova();
 create index if not exists usuarios_cpf_idx on usuarios (cpf) where cpf is not null;
 
 create table if not exists produtos (

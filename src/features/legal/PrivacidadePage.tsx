@@ -148,6 +148,13 @@ export function PrivacidadePage() {
           </li>
           <li>Código de recuperação de senha: 15 minutos.</li>
           <li>
+            Aceites dos Termos e da Política e assinaturas do contrato (nome, e-mail, data e hora, IP,
+            navegador, versão e código de integridade do texto), junto com o texto inteiro de cada
+            versão: guardados mesmo depois do encerramento da conta, sem alteração, enquanto puderem
+            servir de prova (até 10 anos), para o exercício regular de direitos (LGPD, arts. 7º, VI,
+            e 16).
+          </li>
+          <li>
             Vendas e registros da padaria: enquanto a padaria usar o sistema. Prazos fiscais (em geral, 5
             anos) são responsabilidade da padaria, que pode exportar os dados.
           </li>

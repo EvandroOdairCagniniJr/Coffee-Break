@@ -8,6 +8,6 @@ export const empresa = {
   tipo: 'Microempreendedor Individual (MEI)',
   cnpj: '63.702.108/0001-46',
   email: 'evandroodaircagninijr@gmail.com',
-  versaoTermos: '2026-11-03',
+  versaoTermos: '2026-11-03.2',
   vigenciaTermos: '3 de novembro de 2026',
 } as const

@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { FileSignature, Loader2, LogOut } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AssinaturaAnimada } from '@/features/legal/AssinaturaAnimada'
 import { LogoPao } from '@/components/LogoPao'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,7 +35,7 @@ export function TextoContrato() {
   return (
     <div className="space-y-3 text-[13.5px] leading-relaxed">
       {blocos.map((b, i) => {
-        const titulo = i === 0 || /^(CLÁUSULA|PARTES|Versão)/.test(b)
+        const titulo = i === 0 || /^(CLÁUSULA|PARTES|Versão|DADOS DA CONTRATADA)/.test(b)
         return titulo ? (
           <p key={i} className={i === 0 ? 'text-center font-heading text-base font-semibold' : 'pt-2 font-semibold'}>
             {b}
@@ -70,7 +71,7 @@ export function CerimoniaContrato({ onConcluir }: { onConcluir: () => void }) {
     if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 24) setLeuTudo(true)
   }
 
-  if (assinatura) return <Assinando assinatura={assinatura} onConcluir={onConcluir} />
+  if (assinatura) return <AssinaturaAnimada assinatura={assinatura} onConcluir={onConcluir} />
 
   return (
     <div className="cerimonia-fundo fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-6">
@@ -167,72 +168,3 @@ export function CerimoniaContrato({ onConcluir }: { onConcluir: () => void }) {
 }
 
 // A cerimônia: papel, caneta dourada flutuando e escrevendo o nome, carimbo e boas-vindas.
-function Assinando({ assinatura, onConcluir }: { assinatura: AssinaturaContrato; onConcluir: () => void }) {
-  const primeiroNome = assinatura.nome_assinado.split(' ')[0]
-  const quando = new Date(assinatura.assinado_em).toLocaleString('pt-BR')
-  return (
-    <div className="cerimonia-fundo fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-4">
-      {Array.from({ length: 18 }, (_, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="cerimonia-faisca"
-          style={{ left: `${(i * 53) % 100}%`, animationDelay: `${3.1 + (i % 6) * 0.12}s`, top: `${20 + ((i * 37) % 60)}%` }}
-        />
-      ))}
-      <div className="cerimonia-papel-entra relative w-full max-w-xl rounded-xl bg-[#fffaf0] px-6 pt-8 pb-7 text-[#3b2a1d] shadow-[0_30px_80px_rgba(0,0,0,.55)] sm:px-10">
-        <p className="text-center font-heading text-lg font-semibold tracking-wide sm:text-xl">CONTRATO — COFFEE BREAK</p>
-        <div aria-hidden className="mt-4 space-y-2 opacity-35">
-          {[92, 100, 86, 97, 74].map((w, i) => (
-            <div key={i} className="h-1.5 rounded bg-[#3b2a1d]" style={{ width: `${w}%` }} />
-          ))}
-        </div>
-
-        <div className="relative mt-10">
-          <div className="cerimonia-assinatura-caixa relative mx-auto w-fit max-w-full">
-            <span
-              className="cerimonia-escrita block px-2 text-[44px] leading-[1.15] whitespace-nowrap text-[#1f3a8a] sm:text-[56px]"
-              style={{ fontFamily: "'Great Vibes', cursive" }}
-            >
-              {assinatura.nome_assinado}
-            </span>
-            {/* Caneta mágica: dourada, brilhando, acompanha a ponta da escrita. */}
-            <span aria-hidden className="cerimonia-caneta">
-              <svg viewBox="0 0 64 64" className="size-16 sm:size-20">
-                <defs>
-                  <linearGradient id="ouro" x1="0" x2="1" y1="0" y2="1">
-                    <stop offset="0" stopColor="#fff3c4" />
-                    <stop offset=".45" stopColor="#f2c14e" />
-                    <stop offset="1" stopColor="#9a6a12" />
-                  </linearGradient>
-                </defs>
-                <path d="M46 4 L60 18 L24 54 L10 40 Z" fill="url(#ouro)" stroke="#7a520e" strokeWidth="1.5" />
-                <path d="M10 40 L24 54 L6 60 Z" fill="#2b1a0c" />
-                <path d="M6 60 L9 52" stroke="#fff3c4" strokeWidth="1.2" />
-                <path d="M40 10 L54 24" stroke="#fff8dc" strokeWidth="2" opacity=".7" />
-              </svg>
-            </span>
-          </div>
-          <div className="mx-auto h-px w-11/12 bg-[#3b2a1d]/60" />
-          <p className="mt-1.5 text-center text-xs tracking-wide text-[#3b2a1d]/70">ASSINATURA DO CONTRATANTE</p>
-        </div>
-
-        <div aria-hidden className="cerimonia-carimbo absolute top-6 right-4 rounded-lg border-4 border-emerald-700 px-3 py-1.5 text-center font-heading text-lg font-bold tracking-widest text-emerald-700 sm:right-8 sm:text-2xl">
-          ASSINADO
-          <span className="block text-[10px] font-semibold tracking-normal">{quando}</span>
-        </div>
-
-        <div className="cerimonia-final mt-7 space-y-3 text-center">
-          <p className="font-heading text-2xl font-semibold">Bem-vindo ao time, {primeiroNome}!</p>
-          <p className="text-xs break-all text-[#3b2a1d]/70">
-            Contrato versão {assinatura.versao} · assinado em {quando} · código de integridade{' '}
-            {assinatura.hash_contrato.slice(0, 16)}…
-          </p>
-          <Button type="button" size="lg" onClick={onConcluir} className="bg-amber-600 text-white hover:bg-amber-700">
-            Começar a usar o Coffee Break
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}

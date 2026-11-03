@@ -18,6 +18,7 @@ const VendasPage = lazy(paginas.vendas)
 const FinanceiroPage = lazy(paginas.financeiro)
 const ProducaoPage = lazy(paginas.producao)
 const GuiaPage = lazy(paginas.guia)
+const SaberPage = lazy(paginas.saber)
 const EquipePage = lazy(paginas.equipe)
 const MinhaPadariaPage = lazy(paginas.padaria)
 const MetasPage = lazy(paginas.metas)
@@ -79,6 +80,7 @@ export function AppRouter() {
             <Route path="vendas" element={<VendasPage />} />
             <Route path="producao" element={<ProducaoPage />} />
             <Route path="guia" element={<GuiaPage />} />
+            <Route path="saber" element={<SaberPage />} />
             <Route path="equipe" element={<EquipePage />} />
             <Route path="metas" element={<MetasPage />} />
             <Route path="encomendas" element={<EncomendasPage />} />

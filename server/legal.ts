@@ -12,16 +12,85 @@ import type { Usuario } from './auth.ts'
 import { esquecerUsuario } from './cacheUsuarios.ts'
 import { HttpError, validar } from './http.ts'
 
-export const VERSAO_TERMOS = '2026-11-03'
+export const VERSAO_TERMOS = '2026-11-03.2'
 
 // Contrato de licença e prestação de serviços: o mesmo arquivo que o site mostra
 // (src/features/legal/contrato.txt). O hash SHA-256 do texto vai junto com cada assinatura,
 // provando exatamente o que foi assinado. Mudou o texto? Troque a versão no arquivo e aqui.
-export const VERSAO_CONTRATO = '2026-11-03'
+export const VERSAO_CONTRATO = '2026-11-03.2'
 const TEXTO_CONTRATO = readFileSync(new URL('../src/features/legal/contrato.txt', import.meta.url), 'utf8')
   .replace(/\r\n/g, '\n')
   .trim()
 export const HASH_CONTRATO = createHash('sha256').update(TEXTO_CONTRATO, 'utf8').digest('hex')
+
+// Termos de Uso e Política de Privacidade: o texto sai das próprias páginas do site
+// (TermosPage.tsx e PrivacidadePage.tsx), sem as marcações, com os dados da empresa no lugar.
+const VALORES_EMPRESA = Object.fromEntries(
+  [...readFileSync(new URL('../src/lib/empresa.ts', import.meta.url), 'utf8').matchAll(/^\s*(\w+): '([^']*)'/gm)].map(
+    (m) => [m[1], m[2]],
+  ),
+)
+function textoDaPagina(arquivo: string) {
+  const fonte = readFileSync(new URL(`../src/features/legal/${arquivo}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+  const inicio = fonte.indexOf('return (')
+  return fonte
+    .slice(inicio >= 0 ? inicio + 'return ('.length : 0)
+    .replace(/\{empresa\.(\w+)\}/g, (_, chave: string) => VALORES_EMPRESA[chave] ?? '')
+    .replace(/\{'\s*'\}/g, ' ')
+    .replace(/titulo="([^"]*)"/g, '>$1<')
+    .replace(/<\/?(strong|em|b|span|a|Link|code)\b[^>]*>/g, '')
+    .replace(/<[^>]*>/g, '\n')
+    .replace(/[{}]/g, '')
+    .split('\n')
+    .map((l) => l.replace(/\s+/g, ' ').trim())
+    .filter((l) => l && l !== ')' && l !== ');')
+    .join('\n')
+}
+const TEXTO_TERMOS = textoDaPagina('TermosPage.tsx')
+const TEXTO_PRIVACIDADE = textoDaPagina('PrivacidadePage.tsx')
+const sha256 = (t: string) => createHash('sha256').update(t, 'utf8').digest('hex')
+export const HASH_TERMOS = sha256(TEXTO_TERMOS)
+export const HASH_PRIVACIDADE = sha256(TEXTO_PRIVACIDADE)
+
+// Ao subir, guarda no banco o texto inteiro de cada versão em vigor (se ainda não estiver lá).
+// É o que permite, anos depois, mostrar exatamente o que a pessoa aceitou ou assinou.
+export async function registrarDocumentosLegais() {
+  for (const [tipo, versao, hash, texto] of [
+    ['contrato', VERSAO_CONTRATO, HASH_CONTRATO, TEXTO_CONTRATO],
+    ['termos', VERSAO_TERMOS, HASH_TERMOS, TEXTO_TERMOS],
+    ['privacidade', VERSAO_TERMOS, HASH_PRIVACIDADE, TEXTO_PRIVACIDADE],
+  ]) {
+    await pool.query(
+      'insert into documentos_legais (tipo, versao, hash, texto) values (?, ?, ?, ?) on conflict (tipo, hash) do nothing',
+      [tipo, versao, hash, texto],
+    )
+  }
+}
+
+// Cada aceite vira uma linha nova no histórico (nunca sobrescreve o anterior).
+export async function registrarAceite(
+  pessoa: { id: string; padaria_id: string; nome: string; email: string },
+  origem: 'cadastro' | 'primeiro-acesso' | 'novo-aceite' | 'contrato',
+  req: { ip?: string; headers: Record<string, unknown> },
+) {
+  await pool.query(
+    `insert into aceites_termos (id, padaria_id, usuario_id, nome, email, versao, hash_termos, hash_privacidade,
+       origem, ip, navegador) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      randomUUID(),
+      pessoa.padaria_id,
+      pessoa.id,
+      pessoa.nome,
+      pessoa.email,
+      VERSAO_TERMOS,
+      HASH_TERMOS,
+      HASH_PRIVACIDADE,
+      origem,
+      req.ip?.slice(0, 64) ?? null,
+      String(req.headers['user-agent'] ?? '').slice(0, 255),
+    ],
+  )
+}
 
 // "Maria  de Souza" e "maria de souza" são o mesmo nome; acentos também não atrapalham.
 const normalizarNome = (s: string) =>
@@ -55,6 +124,7 @@ legalRouter.get('/termos', async (_req, res) => {
 legalRouter.post('/termos', async (req, res) => {
   validar(z.object({ aceite: aceiteSchema }), req.body)
   const u = res.locals.usuario as Usuario
+  await registrarAceite(u, 'novo-aceite', req)
   await pool.query('update usuarios set termos_versao = ?, termos_aceitos_em = now() where id = ?', [
     VERSAO_TERMOS,
     u.id,
@@ -94,8 +164,9 @@ legalRouter.post('/contrato', async (req, res) => {
   }
   const id = randomUUID()
   await pool.query(
-    `insert into assinaturas_contrato (id, padaria_id, usuario_id, versao, nome_assinado, hash_contrato, ip, navegador)
-     values (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `insert into assinaturas_contrato (id, padaria_id, usuario_id, versao, nome_assinado, hash_contrato, ip, navegador,
+       email_conta, padaria_nome)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, (select dados->>'nome_fantasia' from padarias where id = ?))`,
     [
       id,
       u.padaria_id,
@@ -105,8 +176,11 @@ legalRouter.post('/contrato', async (req, res) => {
       HASH_CONTRATO,
       req.ip?.slice(0, 64) ?? null,
       String(req.headers['user-agent'] ?? '').slice(0, 255),
+      u.email,
+      u.padaria_id,
     ],
   )
+  await registrarAceite(u, 'contrato', req)
   // O contrato inclui os Termos e a Política: assinar também registra o aceite deles.
   await pool.query('update usuarios set termos_versao = ?, termos_aceitos_em = now() where id = ?', [
     VERSAO_TERMOS,
@@ -124,7 +198,7 @@ legalRouter.post('/contrato', async (req, res) => {
 // arquivo para baixar. Não inclui a senha (só existe o hash, que não serve a ninguém).
 legalRouter.get('/meus-dados', async (_req, res) => {
   const u = res.locals.usuario as Usuario
-  const [[pessoa], [acessos], [historico], [resumo], [assinaturas]] = await Promise.all([
+  const [[pessoa], [acessos], [historico], [resumo], [assinaturas], [aceites]] = await Promise.all([
     pool.query<RowDataPacket[]>(
       `select u.nome, u.email, u.papel, u.cargo, u.foto, u.telefone, u.cpf, u.data_nascimento,
               u.data_admissao, u.turno, u.endereco, u.contato_emergencia, u.ativo, u.created_at,
@@ -154,6 +228,11 @@ legalRouter.get('/meus-dados', async (_req, res) => {
        from assinaturas_contrato where usuario_id = ? order by assinado_em desc`,
       [u.id],
     ),
+    pool.query<RowDataPacket[]>(
+      `select versao, origem, hash_termos, hash_privacidade, ip, navegador, aceito_em
+       from aceites_termos where usuario_id = ? order by aceito_em desc`,
+      [u.id],
+    ),
   ])
   const arquivo = {
     sobre: 'Seus dados pessoais no Coffee Break (LGPD, art. 18). Vendas e demais registros da padaria pertencem à padaria e aparecem aqui só como totais.',
@@ -163,6 +242,7 @@ legalRouter.get('/meus-dados', async (_req, res) => {
     historico_do_perfil: historico,
     atividade_na_padaria: resumo[0] ?? null,
     contratos_assinados: assinaturas,
+    aceites_dos_termos: aceites,
   }
   res.setHeader('Content-Disposition', 'attachment; filename="meus-dados-coffee-break.json"')
   res.json(arquivo)

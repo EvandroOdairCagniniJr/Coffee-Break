@@ -36,6 +36,7 @@ import { linkWhatsapp, normalizarWhatsapp } from '@/features/pdv/comprovante'
 import { mascaraTelefone } from '@/lib/documentos'
 import { formatBRL, formatQuantidade, mensagemErro } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { VoceSabia } from '@/features/saber/VoceSabia'
 
 const statusInfo: Record<StatusEncomenda, { label: string; classe: string }> = {
   reservada: { label: 'Reservada', classe: 'bg-slate-100 text-slate-700' },
@@ -116,6 +117,8 @@ export function EncomendasPage() {
           Nova encomenda
         </Button>
       </div>
+
+      <VoceSabia tela="encomendas" />
 
       <div className="inline-flex rounded-lg border bg-card p-1">
         {(

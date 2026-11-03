@@ -49,6 +49,7 @@ import {
 import { ehGestao, papelLabels } from '@/lib/permissoes'
 import { cn } from '@/lib/utils'
 import type { AtividadeEquipe, ResumoMembro } from '@/types/database'
+import { VoceSabia } from '@/features/saber/VoceSabia'
 
 const periodos = [
   { key: 'hoje', label: 'Hoje', diasAtras: 0 },
@@ -139,6 +140,8 @@ export function EquipePage() {
           )}
         </div>
       </div>
+
+      <VoceSabia tela="equipe" />
 
       <MuralEquipe desde={desde} hoje={hoje} periodoLabel={periodoAtual.label} />
 

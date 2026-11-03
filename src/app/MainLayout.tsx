@@ -11,6 +11,7 @@ import {
   Package,
   Percent,
   Receipt,
+  Scale,
   ShoppingCart,
   Store,
   Tag,
@@ -86,6 +87,7 @@ const secoes: { titulo: string | null; itens: ItemMenu[] }[] = [
       { to: '/equipe', label: 'Equipe', icon: Users, papeis: todos },
       { to: '/padaria', label: 'Minha padaria', icon: Store, papeis: ['dono'] },
       { to: '/guia', label: 'Guia e dicas', icon: BookOpen, papeis: todos },
+      { to: '/saber', label: 'Leis e boas práticas', icon: Scale, papeis: todos },
     ],
   },
 ]

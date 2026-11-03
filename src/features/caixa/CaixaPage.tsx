@@ -39,6 +39,7 @@ import { formatBRL, formatDataHora, mensagemErro } from '@/lib/format'
 import { ehGestao } from '@/lib/permissoes'
 import { useContagem } from '@/lib/useContagem'
 import { cn } from '@/lib/utils'
+import { VoceSabia } from '@/features/saber/VoceSabia'
 
 const icones: Record<FormaCaixa, typeof Banknote> = {
   dinheiro: Banknote,
@@ -86,6 +87,8 @@ export function CaixaPage() {
           </div>
         )}
       </div>
+
+      <VoceSabia tela="caixa" />
 
       {aba === 'historico' ? (
         <HistoricoCaixas />

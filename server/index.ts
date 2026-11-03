@@ -24,7 +24,7 @@ const { margensRouter } = await import('./margens.ts')
 const { recomendacoesRouter } = await import('./recomendacoes.ts')
 const { analiseRouter } = await import('./analise.ts')
 const { promocoesRouter } = await import('./promocoes.ts')
-const { legalRouter } = await import('./legal.ts')
+const { legalRouter, registrarDocumentosLegais } = await import('./legal.ts')
 const { errorHandler } = await import('./http.ts')
 const { agendarLimpeza, cabecalhosSeguranca, limiteGeral, mesmaOrigem, semCache } = await import(
   './seguranca.ts'
@@ -35,6 +35,7 @@ const port = Number(process.env.PORT ?? 3000)
 
 try {
   await initDatabase()
+  await registrarDocumentosLegais()
 } catch (err) {
   console.error('\nNão foi possível conectar ao banco:', (err as Error).message)
   console.error('Confira o DATABASE_URL no arquivo .env (connection string do Supabase).\n')

@@ -20,6 +20,7 @@ export const paginas = {
   padaria: () =>
     import('@/features/padaria/MinhaPadariaPage').then((m) => ({ default: m.MinhaPadariaPage })),
   guia: () => import('@/features/guia/GuiaPage').then((m) => ({ default: m.GuiaPage })),
+  saber: () => import('@/features/saber/SaberPage').then((m) => ({ default: m.SaberPage })),
   metas: () => import('@/features/metas/MetasPage').then((m) => ({ default: m.MetasPage })),
   encomendas: () =>
     import('@/features/encomendas/EncomendasPage').then((m) => ({ default: m.EncomendasPage })),

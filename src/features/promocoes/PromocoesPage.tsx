@@ -23,6 +23,7 @@ import { useProdutos } from '@/features/produtos/api'
 import { formatBRL, formatDataHora, mensagemErro } from '@/lib/format'
 import { descreverPromocao, promocaoVigente, type Abrangencia, type TipoPromocao } from '@/lib/promocoes'
 import { cn } from '@/lib/utils'
+import { VoceSabia } from '@/features/saber/VoceSabia'
 
 const tipos: { value: TipoPromocao; label: string; dica: string }[] = [
   { value: 'percentual', label: '% de desconto', dica: 'Ex.: 20% em todos os pães' },
@@ -117,6 +118,8 @@ export function PromocoesPage() {
           Nova promoção
         </Button>
       </div>
+
+      <VoceSabia tela="promocoes" />
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {modelos.map((m) => (

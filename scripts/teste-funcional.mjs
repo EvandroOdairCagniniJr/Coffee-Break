@@ -330,6 +330,26 @@ r = await api(dono, 'GET', '/legal/contrato')
 confere('depois de assinar, não há mais pendência', r.json?.pendente === false && r.json?.assinatura?.nome_assinado, JSON.stringify(r.json))
 r = await api(dono, 'GET', '/legal/meus-dados')
 confere('a assinatura aparece em "Baixar meus dados" com IP e data', r.json?.contratos_assinados?.length === 1 && 'ip' in r.json.contratos_assinados[0], JSON.stringify(r.json?.contratos_assinados))
+confere('o histórico de aceites aparece em "Baixar meus dados"', r.json?.aceites_dos_termos?.length >= 2, JSON.stringify(r.json?.aceites_dos_termos))
+
+// Provas guardadas no banco: texto inteiro de cada versão, histórico de aceites, nada se altera.
+const docs = (await db.query('select tipo, hash, texto from padaria.documentos_legais')).rows
+const docContrato = docs.find((d) => d.tipo === 'contrato' && d.hash === hashEsperado)
+confere('o texto inteiro do contrato assinado fica guardado no banco', docContrato?.texto === readFileSync('src/features/legal/contrato.txt', 'utf8').replace(/\r\n/g, '\n').trim())
+confere('o texto dos Termos e da Política também fica guardado', docs.some((d) => d.tipo === 'termos' && /Termos de Uso/.test(d.texto)) && docs.some((d) => d.tipo === 'privacidade' && /LGPD/.test(d.texto)), docs.map((d) => d.tipo).join(','))
+confere('os dados da contratada ficam no fim do contrato', /DADOS DA CONTRATADA\n\n[^\n]*63\.702\.108\/0001-46[^\n]*$/.test(docContrato?.texto ?? ''))
+const aceitesDono = (await db.query(`select origem, hash_termos, nome from padaria.aceites_termos where email like 'rosa.%' order by aceito_em`)).rows
+confere('aceites do dono no histórico: criação da padaria e contrato', aceitesDono.map((a) => a.origem).join(',') === 'primeiro-acesso,contrato', JSON.stringify(aceitesDono))
+confere('cada aceite aponta para um texto guardado', aceitesDono.every((a) => docs.some((d) => d.tipo === 'termos' && d.hash === a.hash_termos)))
+const aceitesFunc = (await db.query(`select origem, ip from padaria.aceites_termos where email like 'caio.%'`)).rows
+confere('novo aceite do funcionário fica no histórico, com IP', aceitesFunc.some((a) => a.origem === 'novo-aceite' && a.ip), JSON.stringify(aceitesFunc))
+const assinaturaBanco = (await db.query(`select email_conta, padaria_nome from padaria.assinaturas_contrato where email_conta like 'rosa.%'`)).rows[0]
+confere('a assinatura guarda o e-mail e o nome da padaria da época', assinaturaBanco?.email_conta && assinaturaBanco?.padaria_nome, JSON.stringify(assinaturaBanco))
+const recusa = async (sql) => db.query(sql).then(() => false, (e) => /Registro legal/.test(e.message))
+confere('o banco recusa alterar uma assinatura', await recusa(`update padaria.assinaturas_contrato set nome_assinado = 'Outro'`))
+confere('o banco recusa apagar uma assinatura', await recusa('delete from padaria.assinaturas_contrato'))
+confere('o banco recusa apagar o histórico de aceites', await recusa('delete from padaria.aceites_termos'))
+confere('o banco recusa alterar o texto guardado', await recusa(`update padaria.documentos_legais set texto = 'x'`))
 
 // ------------------------------------------------------------------ resultado
 console.log(`\n${'─'.repeat(60)}`)

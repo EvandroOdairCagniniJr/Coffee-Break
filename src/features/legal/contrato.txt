@@ -1,12 +1,12 @@
 CONTRATO DE LICENÇA DE USO E PRESTAÇÃO DE SERVIÇOS DE SOFTWARE — COFFEE BREAK
 
-Versão 2026-11-03
+Versão 2026-11-03.2
 
 PARTES
 
-CONTRATADA: EVANDRO ODAIR CAGNINI JUNIOR, Microempreendedor Individual (MEI), inscrito no CNPJ sob o nº 63.702.108/0001-46, titular do sistema Coffee Break, com contato pelo e-mail evandroodaircagninijr@gmail.com.
-
 CONTRATANTE: a pessoa física ou jurídica identificada no cadastro do Coffee Break, representada pela pessoa que assina eletronicamente este contrato, que declara ter poderes para contratar em nome da padaria ou do estabelecimento cadastrado.
+
+CONTRATADA: o titular do sistema Coffee Break, identificado ao final deste contrato.
 
 As partes celebram este contrato, que se rege pelas cláusulas abaixo e pela legislação brasileira.
 
@@ -127,3 +127,7 @@ CLÁUSULA 15 — DA LEI APLICÁVEL E DO FORO
 15.2. Quando a CONTRATANTE for consumidora, o foro é o do seu domicílio. Nos demais casos, as partes elegem o foro do domicílio da CONTRATADA, com renúncia a qualquer outro, por mais privilegiado que seja.
 
 E, por estarem de acordo, a CONTRATANTE assina eletronicamente este contrato.
+
+DADOS DA CONTRATADA
+
+EVANDRO ODAIR CAGNINI JUNIOR, Microempreendedor Individual (MEI), inscrito no CNPJ sob o nº 63.702.108/0001-46, titular do sistema Coffee Break. Contato: evandroodaircagninijr@gmail.com.
