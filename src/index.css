@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "./styles/shadcn-tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/outfit";
 /* Títulos e preços em destaque: serifa macia, de letreiro de padaria e lousa de cardápio. */
