@@ -93,25 +93,24 @@ function Logo({ assinatura = true }: { assinatura?: boolean }) {
   const padaria = usePadaria()
   const nomePadaria = padaria.data?.nome_fantasia?.trim()
   const nome = nomePadaria || (padaria.isLoading ? '' : 'Coffee Break')
+  const mostrarAssinatura = assinatura && Boolean(nomePadaria)
   return (
-    <div className="min-w-0">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <LogoPadaria />
-        <div className="min-w-0 font-heading text-lg leading-tight font-semibold">
+    <div className="flex min-w-0 items-center gap-2.5">
+      <LogoPadaria className={mostrarAssinatura ? 'size-11' : undefined} />
+      <div className="min-w-0">
+        <div className="font-heading text-lg leading-tight font-semibold">
           <span className="line-clamp-2 break-words" title={nome}>
             {nome}
           </span>
         </div>
+        {/* Assinatura do sistema, como subtítulo da padaria: menor e em dourado, em segundo plano. */}
+        {mostrarAssinatura && (
+          <div className="mt-1 flex items-center gap-1 text-[11px] leading-none font-semibold tracking-wide text-sidebar-primary">
+            <LogoPao className="size-3.5 rounded-[4px] shadow-none ring-1 ring-sidebar-primary/70" />
+            Coffee Break
+          </div>
+        )}
       </div>
-      {/* Assinatura do sistema: cor cheia, só menor. A padaria fica em destaque; o Coffee Break em segundo. */}
-      {assinatura && nomePadaria && (
-        <div className="mt-2 flex items-center gap-1.5 pl-0.5 text-xs leading-none text-sidebar-foreground">
-          <LogoPao className="size-5 rounded-md shadow-none" />
-          <span>
-            com <span className="font-semibold">Coffee Break</span>
-          </span>
-        </div>
-      )}
     </div>
   )
 }
