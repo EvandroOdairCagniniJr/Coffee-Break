@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Briefcase, HeartPulse, Loader2, MapPin, ShieldCheck, UserRound } from 'lucide-react'
+import { Briefcase, Download, HeartPulse, Loader2, MapPin, ShieldCheck, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import {
@@ -22,7 +22,9 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useAuth, type Usuario } from '@/features/auth/AuthContext'
+import { LinksLegais } from '@/features/legal/PaginaLegal'
 import { api } from '@/lib/api'
+import { empresa } from '@/lib/empresa'
 import { CARGO_DONO, cargosSugeridos, turnoLabels } from '@/lib/cargos'
 import {
   cpfValido,
@@ -114,6 +116,22 @@ function FormularioPerfil({ perfil, onFechar }: { perfil: PerfilCompleto; onFech
   )
   const [erros, setErros] = useState<{ nome?: string; cpf?: string; telefone?: string }>({})
   const [salvando, setSalvando] = useState(false)
+
+  // LGPD, art. 18: a pessoa baixa tudo o que o sistema guarda sobre ela (arquivo JSON).
+  async function baixarMeusDados() {
+    try {
+      const dados = await api.get<unknown>('/legal/meus-dados')
+      const url = URL.createObjectURL(new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'meus-dados-coffee-break.json'
+      link.click()
+      URL.revokeObjectURL(url)
+      toast.success('Arquivo com os seus dados baixado')
+    } catch (err) {
+      toast.error(mensagemErro(err, 'Não foi possível baixar seus dados'))
+    }
+  }
 
   const sugestoes =
     perfil.papel === 'dono'
@@ -257,6 +275,24 @@ function FormularioPerfil({ perfil, onFechar }: { perfil: PerfilCompleto; onFech
           icone={HeartPulse}
         >
           <CamposContatoEmergencia valor={contato} onChange={setContato} />
+        </Secao>
+
+        <Secao
+          titulo="Seus dados e privacidade"
+          descricao="Seus direitos pela LGPD: ver, levar, corrigir e pedir a exclusão dos seus dados."
+          icone={ShieldCheck}
+        >
+          <div className="space-y-3 text-sm">
+            <Button type="button" variant="outline" size="sm" onClick={baixarMeusDados}>
+              <Download className="size-4" />
+              Baixar meus dados
+            </Button>
+            <p className="text-muted-foreground">
+              Para corrigir, edite os campos acima. Para outros pedidos, como exclusão da conta,
+              escreva para <span className="font-medium text-foreground select-all">{empresa.email}</span>.
+            </p>
+            <LinksLegais className="text-xs text-muted-foreground" />
+          </div>
         </Secao>
       </div>
 

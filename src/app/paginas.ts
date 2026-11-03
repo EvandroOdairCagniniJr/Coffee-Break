@@ -2,6 +2,9 @@
 // em segundo plano depois do login (precarregarPaginas): trocar de tela fica instantâneo.
 export const paginas = {
   login: () => import('@/features/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
+  termos: () => import('@/features/legal/TermosPage').then((m) => ({ default: m.TermosPage })),
+  privacidade: () =>
+    import('@/features/legal/PrivacidadePage').then((m) => ({ default: m.PrivacidadePage })),
   dashboard: () =>
     import('@/features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
   produtos: () =>

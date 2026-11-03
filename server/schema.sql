@@ -50,6 +50,9 @@ create table if not exists usuarios (
   created_at timestamptz not null default now()
 );
 create index if not exists usuarios_padaria_idx on usuarios (padaria_id);
+-- Aceite dos Termos de Uso e da Política de Privacidade (LGPD): versão aceita e quando.
+alter table usuarios add column if not exists termos_versao varchar(20);
+alter table usuarios add column if not exists termos_aceitos_em timestamptz;
 create index if not exists usuarios_cpf_idx on usuarios (cpf) where cpf is not null;
 
 create table if not exists produtos (

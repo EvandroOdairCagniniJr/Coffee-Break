@@ -22,6 +22,7 @@ import {
 } from './cadastro.ts'
 import { alterarPerfil } from './perfil.ts'
 import { enviarCodigoSenha } from './email.ts'
+import { aceiteSchema, VERSAO_TERMOS } from './legal.ts'
 
 const COOKIE = 'padaria_token'
 const SETE_DIAS_MS = 7 * 24 * 60 * 60 * 1000
@@ -228,6 +229,7 @@ authRouter.post('/cadastro', async (req, res) => {
         .trim()
         .toUpperCase()
         .regex(/^[A-Z0-9]{8}$/, 'O código da padaria tem 8 letras e números'),
+      aceite_termos: aceiteSchema,
     }),
     req.body,
   )
@@ -241,9 +243,10 @@ authRouter.post('/cadastro', async (req, res) => {
   const email = dados.email.trim().toLowerCase()
   if (await emailEmUso(email)) throw emailUsado
   await pool.query(
-    `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, ativo)
-     values (?, ?, ?, ?, ?, 'funcionario', '', false)`,
-    [randomUUID(), padarias[0].id, dados.nome, email, await hashSenha(dados.senha)],
+    `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, ativo,
+       termos_versao, termos_aceitos_em)
+     values (?, ?, ?, ?, ?, 'funcionario', '', false, ?, now())`,
+    [randomUUID(), padarias[0].id, dados.nome, email, await hashSenha(dados.senha), VERSAO_TERMOS],
   )
   res.status(201).json({ ok: true })
 })
@@ -380,6 +383,7 @@ authRouter.post('/setup', async (req, res) => {
         email: z.email('Informe um e-mail válido'),
         senha: senhaSchema,
         padaria: padariaSchema,
+        aceite_termos: aceiteSchema,
       })
       .extend(dadosPessoaisSchema.shape),
     req.body,
@@ -404,8 +408,8 @@ authRouter.post('/setup', async (req, res) => {
   ])
   await pool.query(
     `insert into usuarios (id, padaria_id, nome, email, senha_hash, papel, cargo, telefone, cpf,
-       data_nascimento, endereco, ultimo_acesso)
-     values (?, ?, ?, ?, ?, 'dono', ?, ?, ?, ?, ?, now())`,
+       data_nascimento, endereco, ultimo_acesso, termos_versao, termos_aceitos_em)
+     values (?, ?, ?, ?, ?, 'dono', ?, ?, ?, ?, ?, now(), '${VERSAO_TERMOS}', now())`,
     [
       usuario.id,
       padariaId,

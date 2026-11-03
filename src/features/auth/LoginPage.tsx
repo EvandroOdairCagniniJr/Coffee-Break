@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/features/auth/AuthContext'
 import { EsqueciSenha } from '@/features/auth/EsqueciSenha'
 import { PrimeiroAcesso } from '@/features/auth/PrimeiroAcesso'
+import { AceiteTermos, AVISO_ACEITE } from '@/features/legal/AceiteTermos'
+import { LinksLegais } from '@/features/legal/PaginaLegal'
 import { api } from '@/lib/api'
 import { REGRA_SENHA, erroSenha } from '@/lib/senha'
 import { cn } from '@/lib/utils'
@@ -142,9 +144,15 @@ function FormCriarConta({ onCriada }: { onCriada: () => void }) {
     formState: { errors, isSubmitting },
   } = useForm<CadastroForm>({ resolver: zodResolver(cadastroSchema) })
 
+  const [aceite, setAceite] = useState(false)
+
   async function onSubmit({ nome, email, senha, codigo }: CadastroForm) {
+    if (!aceite) {
+      setError('root', { message: AVISO_ACEITE })
+      return
+    }
     try {
-      await api.post('/auth/cadastro', { nome, email, senha, codigo })
+      await api.post('/auth/cadastro', { nome, email, senha, codigo, aceite_termos: true })
       setCriada(true)
     } catch (err) {
       setError('root', { message: err instanceof Error ? err.message : 'Não foi possível criar a conta' })
@@ -211,6 +219,8 @@ function FormCriarConta({ onCriada }: { onCriada: () => void }) {
         <CampoSenha id="senha-confirmar" autoComplete="new-password" {...register('confirmacao')} />
         <Erro>{errors.confirmacao?.message}</Erro>
       </div>
+
+      <AceiteTermos id="aceite-cadastro" marcado={aceite} onChange={setAceite} />
 
       {errors.root && (
         <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -344,6 +354,7 @@ export function LoginPage() {
             )}
           </>
         )}
+        <LinksLegais />
       </div>
     </div>
   )

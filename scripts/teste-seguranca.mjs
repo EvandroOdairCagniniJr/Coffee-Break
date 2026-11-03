@@ -107,10 +107,10 @@ const donoB = { email: `dono.b.${id}@teste.local`, nome: 'Dono Padaria B' }
 const func = { email: `func.a.${id}@teste.local`, nome: 'Funcionário A' }
 
 const setupA = await api('POST', '/auth/setup', {
-  corpo: { nome: donoA.nome, email: donoA.email, senha: SENHA, cpf: cpfDonoA, padaria: { nome_fantasia: 'Padaria A' } },
+  corpo: { nome: donoA.nome, email: donoA.email, senha: SENHA, cpf: cpfDonoA, aceite_termos: true, padaria: { nome_fantasia: 'Padaria A' } },
 })
 const setupB = await api('POST', '/auth/setup', {
-  corpo: { nome: donoB.nome, email: donoB.email, senha: SENHA, padaria: { nome_fantasia: 'Padaria B' } },
+  corpo: { nome: donoB.nome, email: donoB.email, senha: SENHA, aceite_termos: true, padaria: { nome_fantasia: 'Padaria B' } },
 })
 if (setupA.status !== 200 || setupB.status !== 200) {
   console.error('Não foi possível preparar os dados de teste:', setupA.texto, setupB.texto)
@@ -237,7 +237,7 @@ confere('CSRF', 'formulário comum (não JSON) é recusado', r.status === 415, `
 // ------------------------------------------------------------------ 7. dados pessoais
 titulo('7. Dados pessoais')
 r = await api('POST', '/auth/setup', {
-  corpo: { nome: 'Curioso', email: `curioso.${id}@teste.local`, senha: SENHA, cpf: cpfDonoA, padaria: { nome_fantasia: 'X' } },
+  corpo: { nome: 'Curioso', email: `curioso.${id}@teste.local`, senha: SENHA, cpf: cpfDonoA, aceite_termos: true, padaria: { nome_fantasia: 'X' } },
 })
 confere('Dados pessoais', 'CPF repetido não revela o nome do titular', r.status === 409 && !r.texto.includes(donoA.nome), r.json?.message)
 const naoExiste = await api('POST', '/auth/login', { corpo: { email: `ninguem.${id}@teste.local`, senha: 'Errada123' } })
@@ -255,7 +255,7 @@ await api('POST', '/auth/sair-de-todos', { cookie: A })
 r = await api('GET', '/auth/me', { cookie: A })
 confere('Sessões', '"Sair de todos os aparelhos" invalida o login antigo', r.status === 401, `status ${r.status}`)
 r = await api('POST', '/auth/setup', {
-  corpo: { nome: 'Fraca', email: `fraca.${id}@teste.local`, senha: '123', padaria: { nome_fantasia: 'Y' } },
+  corpo: { nome: 'Fraca', email: `fraca.${id}@teste.local`, senha: '123', aceite_termos: true, padaria: { nome_fantasia: 'Y' } },
 })
 confere('Sessões', 'senha fraca é recusada no cadastro', r.status === 400, `status ${r.status}`)
 
@@ -288,7 +288,7 @@ const codigos = []
 for (let i = 0; i < 25; i++) {
   codigos.push(
     (await api('POST', '/auth/cadastro', {
-      corpo: { nome: 'Robô', email: `robo.${id}@teste.local`, senha: 'Chute1234', codigo: 'ZZZZZZZZ' },
+      corpo: { nome: 'Robô', email: `robo.${id}@teste.local`, senha: 'Chute1234', codigo: 'ZZZZZZZZ', aceite_termos: true },
     })).status,
   )
 }

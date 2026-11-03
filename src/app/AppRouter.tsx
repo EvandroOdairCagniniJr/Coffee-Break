@@ -7,6 +7,8 @@ import { RequirePapel } from '@/app/RequirePapel'
 import { paginas } from '@/app/paginas'
 
 const LoginPage = lazy(paginas.login)
+const TermosPage = lazy(paginas.termos)
+const PrivacidadePage = lazy(paginas.privacidade)
 const DashboardPage = lazy(paginas.dashboard)
 const ProdutosPage = lazy(paginas.produtos)
 const EstoquePage = lazy(paginas.estoque)
@@ -39,6 +41,24 @@ export function AppRouter() {
           element={
             <Suspense fallback={carregando}>
               <LoginPage />
+            </Suspense>
+          }
+        />
+
+        {/* Páginas legais: públicas, abertas antes de criar a conta. */}
+        <Route
+          path="/termos"
+          element={
+            <Suspense fallback={carregando}>
+              <TermosPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/privacidade"
+          element={
+            <Suspense fallback={carregando}>
+              <PrivacidadePage />
             </Suspense>
           }
         />

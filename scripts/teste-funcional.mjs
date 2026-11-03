@@ -92,7 +92,7 @@ const dono = (await api(null, 'POST', '/auth/setup', {
   nome: 'Dona Rosa',
   email: `rosa.${id}@teste.local`,
   senha: SENHA,
-  padaria: { nome_fantasia: 'Padaria Teste' },
+  aceite_termos: true, padaria: { nome_fantasia: 'Padaria Teste' },
 })).cookie
 await api(dono, 'POST', '/equipe/membros', { nome: 'Caio Balcão', email: `caio.${id}@teste.local`, senha: SENHA, papel: 'funcionario' })
 const func = (await api(null, 'POST', '/auth/login', { email: `caio.${id}@teste.local`, senha: SENHA })).cookie
@@ -286,6 +286,29 @@ r = await api(dono, 'PUT', '/padaria', { ...atual, comprovante: { titulo: 'x'.re
 confere('título com mais de 40 letras é recusado', r.status === 400, `status ${r.status}`)
 r = await api(func, 'GET', '/padaria')
 confere('funcionário vê a logo (menu e comprovante)', r.status === 200 && r.json?.logo === logo, `status ${r.status}`)
+
+// ------------------------------------------------------------------ 15
+cenario('15. Termos, privacidade e direitos do titular (LGPD)')
+r = await api(null, 'POST', '/auth/setup', { nome: 'Sem Aceite', email: `semaceite.${id}@teste.local`, senha: SENHA, padaria: { nome_fantasia: 'X' } })
+confere('criar padaria sem aceitar os termos é recusado', r.status === 400 && /Termos/.test(r.json?.message ?? ''), r.json?.message)
+r = await api(null, 'POST', '/auth/cadastro', { nome: 'Sem Aceite', email: `semaceite2.${id}@teste.local`, senha: SENHA, codigo: 'ABCDEFGH' })
+confere('criar conta de funcionário sem aceitar os termos é recusado', r.status === 400, `status ${r.status}`)
+r = await api(dono, 'GET', '/legal/termos')
+confere('dono que aceitou no cadastro não tem pendência', r.status === 200 && r.json?.pendente === false && r.json?.aceito_em, JSON.stringify(r.json))
+r = await api(func, 'GET', '/legal/termos')
+confere('funcionário cadastrado pelo dono precisa aceitar no primeiro acesso', r.json?.pendente === true, JSON.stringify(r.json))
+r = await api(func, 'POST', '/legal/termos', { aceite: false })
+confere('aceite desmarcado é recusado', r.status === 400, `status ${r.status}`)
+r = await api(func, 'POST', '/legal/termos', { aceite: true })
+confere('funcionário aceita os termos', r.status === 204, `status ${r.status}`)
+r = await api(func, 'GET', '/legal/termos')
+confere('aceite registrado com data e versão', r.json?.pendente === false && r.json?.versao_aceita === r.json?.versao_atual && r.json?.aceito_em, JSON.stringify(r.json))
+r = await api(func, 'GET', '/legal/meus-dados')
+confere('"Baixar meus dados" traz o perfil e os registros de acesso', r.status === 200 && r.json?.perfil?.email?.startsWith('caio.') && Array.isArray(r.json?.registros_de_acesso), `status ${r.status}`)
+confere('o arquivo não traz senha nem hash', !/senha|\$2[aby]\$/.test(r.texto))
+confere('o arquivo não traz dados de outras pessoas', !r.texto.includes(`rosa.${id}`))
+r = await api(null, 'GET', '/legal/meus-dados')
+confere('sem login não baixa dados de ninguém', r.status === 401, `status ${r.status}`)
 
 // ------------------------------------------------------------------ resultado
 console.log(`\n${'─'.repeat(60)}`)

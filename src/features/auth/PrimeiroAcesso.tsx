@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Check, KeyRound, Loader2, UserRound } from 'lucide-react'
 import { LogoPao } from '@/components/LogoPao'
+import { AceiteTermos, AVISO_ACEITE } from '@/features/legal/AceiteTermos'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Campo, Secao } from '@/components/cadastro/Formulario'
@@ -66,6 +67,7 @@ export function PrimeiroAcesso({ onVoltar }: { onVoltar?: () => void }) {
   const [errosPadaria, setErrosPadaria] = useState<ErrosPadaria>({})
   const [erroGeral, setErroGeral] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [aceite, setAceite] = useState(false)
 
   const mudarDono = <K extends keyof Dono>(campo: K, v: Dono[K]) => {
     setDono((d) => ({ ...d, [campo]: v }))
@@ -84,9 +86,14 @@ export function PrimeiroAcesso({ onVoltar }: { onVoltar?: () => void }) {
     const erros = validarPadaria(padaria)
     setErrosPadaria(erros)
     if (Object.keys(erros).length > 0) return
+    if (!aceite) {
+      setErroGeral(AVISO_ACEITE)
+      return
+    }
 
     setEnviando(true)
     const { error } = await primeiroAcesso({
+      aceite_termos: true,
       nome: dono.nome.trim(),
       email: dono.email.trim(),
       senha: dono.senha,
@@ -275,6 +282,12 @@ export function PrimeiroAcesso({ onVoltar }: { onVoltar?: () => void }) {
                 erros={errosPadaria}
                 completo={false}
               />
+            )}
+
+            {etapa === 1 && (
+              <div className="mt-5">
+                <AceiteTermos id="aceite-padaria" marcado={aceite} onChange={setAceite} />
+              </div>
             )}
 
             {erroGeral && (

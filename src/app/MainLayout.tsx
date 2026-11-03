@@ -24,6 +24,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { BoasVindas } from '@/app/BoasVindas'
+import { PortaoTermos } from '@/features/legal/TermosPendentes'
 import { Avatar } from '@/components/Avatar'
 import { LogoPadaria, LogoPao } from '@/components/LogoPao'
 import { usePadaria } from '@/features/padaria/api'
@@ -278,7 +279,9 @@ export function MainLayout() {
             </div>
           }
         >
-          <BoasVindas />
+          <PortaoTermos>
+            <BoasVindas />
+          </PortaoTermos>
           {/* key: cada troca de tela reapresenta o conteúdo com uma entrada suave. */}
           <div key={pathname} className="tela-entra flex min-h-0 flex-1 flex-col">
             <Outlet />

@@ -127,6 +127,11 @@ export function PersonalizarComprovante({
           Data, forma de pagamento, itens, total, troco e "Documento sem valor fiscal" sempre aparecem.
           Endereço, contatos e horário vêm dos dados preenchidos abaixo.
         </p>
+        <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-xs text-amber-900">
+          Este comprovante é um recibo para o cliente e <strong>não tem valor fiscal</strong>. A emissão
+          da NFC-e ou da NF-e (com os campos da reforma tributária, IBS e CBS) continua sendo
+          obrigação da padaria, feita no sistema fiscal indicado pelo seu contador.
+        </p>
       </div>
     </section>
   )
